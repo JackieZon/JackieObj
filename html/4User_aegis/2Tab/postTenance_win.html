@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+</head>
+<body>
+    <div class="header" ref="header" id="header">
+        <mt-header title="处理维保">
+            <div slot="left">
+                <mt-button icon="back" onclick="api.closeWin();"></mt-button>
+            </div>
+        </mt-header>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script>
+    subei.ready(function (){
+        new Vue({
+            el:"#header",
+            data:{},
+            mounted: function  (){
+                openFrame('postTenance_frm','./postTenance_frm.html',{defaultData:subei.getParam('defaultData')});
+            }
+        });
+    });
+</script>
+</html>

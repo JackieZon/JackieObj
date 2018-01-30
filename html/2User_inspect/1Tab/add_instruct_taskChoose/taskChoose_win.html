@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+</head>
+
+<body>
+    <div class="header" ref="header" id="header">
+        <mt-header :title="'已选择列表'">
+            <div slot="left">
+                <mt-button icon="back" @click="isOk"></mt-button>
+            </div>
+            <mt-button slot="right" size="small" @click="goTaskList">关联任务</mt-button>
+        </mt-header>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script>
+
+    subei.ready(function () {
+
+        var taskId = subei.getParam('taskId');
+        var CommandTaskIDs = subei.getParam('CommandTaskIDs');
+        var items = subei.getParam('items');
+        var companyUseID = subei.getParam('companyUseID');
+
+        new Vue({
+            el: "#header",
+            data: {},
+            mounted: function () {
+                openFrame('taskChoose_frm', './taskChoose_frm.html', {taskId: taskId || 0, CommandTaskIDs: CommandTaskIDs, items: items});
+            },
+            methods: {
+                isOk: function(){
+                    console.log('点击了返回');
+                    execJs('taskChoose_win','taskChoose_frm','chooseTasks()')
+                },
+                goTaskList: function(){
+                    openWin('taskList_win','./../add_instruct_taskList/taskList_win.html',{companyUseID:companyUseID});
+                }
+            }
+        });
+
+    })
+
+</script>
+
+</html>

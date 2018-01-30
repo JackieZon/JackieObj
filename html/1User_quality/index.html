@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link href="../../css/base.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./../../css/mint/style.css">
+    <style type="text/css"></style>
+    <title></title>
+    <style>
+        #app{
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="app" ref="app">
+    <div class="header" ref="header">
+        <mt-header :title="tabText[selected]"></mt-header>
+        <mt-search
+            v-if="selected==1"
+            v-model="search"
+            cancel-text="取消"
+            placeholder="搜索">
+        </mt-search>
+    </div>
+    <mt-tabbar v-model="selected" fixed id="footer">
+        <mt-tab-item id="4">
+            <Icon slot="icon" :name="'icon-home'"></Icon>
+            {{tabText[4]}}
+        </mt-tab-item>
+        <mt-tab-item id="0">
+            <Icon slot="icon" :name="'icon-remind'"></Icon>
+            {{tabText[0]}}
+        </mt-tab-item>
+        <mt-tab-item id="1">
+            <Icon slot="icon" :name="'icon-form'"></Icon>
+            {{tabText[1]}}
+            </mt-tab-item>
+        <!-- <mt-tab-item id="2">
+            <Icon slot="icon" :name="'icon-shake'"></Icon>
+            {{tabText[2]}}
+        </mt-tab-item> -->
+        <mt-tab-item id="3">
+            <Icon slot="icon" :name="'icon-friend'"></Icon>
+            {{tabText[3]}}
+        </mt-tab-item>
+    </mt-tabbar>
+</div>
+<script src="./../../script/api.js"></script>
+<script src="./../../script/base.js"></script>
+<script src="./../../script/device.js"></script>
+<script src="./../../script/jquery.js"></script>
+<script src="./../../script/vue/vue.js"></script>
+<script src="./../../script/mint/index.js"></script>
+<script src="./../../icon/icon/iconfont.js"></script>
+<script type="text/javascript">
+
+    subei.ready(function () {
+        new Vue({
+            el: '#app',
+            data: {
+                search:'',
+                selected: '4',
+                tabText: ['检查任务','指令书','设备查询','我的',"首页"],
+            },
+            watch: {
+                selected: function (val) {
+
+                    // console.log(`${val}${typeof(val)}`);
+                    api.setFrameGroupIndex({ name: 'indexGroup', index: Number(val) });
+
+                }
+            },
+            mounted: function () {
+
+                //退出app
+                // sb_appExit();
+
+                d_addEventListener('command_audit_ok', function (res) {//指令审核成功后返回列表
+                    d_sendEventExtra("command_refresh_ok",{});
+                    this.selected = '1';
+                    api.setFrameGroupIndex({ name: 'indexGroup', index: Number('1') });
+                });
+
+                d_addEventListener('openTaskList', function (res) {
+                    this.selected = String(res.value.num);
+                    api.setFrameGroupIndex({ name: 'indexGroup', index: Number(res.value.num) });
+                }.bind(this));
+
+
+                var header = this.$refs.header;
+                var footer = document.getElementById('footer').offsetHeight;
+                $api.fixStatusBar(header);
+
+                var header_h = $api.offset(header).h;
+                var winHeight = this.$refs.app.offsetHeight;
+                var frame_h = winHeight - header_h - footer;
+
+                api.openFrameGroup({
+                    name: 'indexGroup',
+                    scrollEnabled: false,
+                    rect: { x: 0, y: header_h, w: 'auto', h: frame_h },
+                    index: 4,
+                    frames: [{
+                        name: '1Tab',
+                        url: '1Tab/index.html',
+                        vScrollBarEnabled: false,
+                        hScrollBarEnabled: false,
+                        bounces: true
+                    }, {
+                        name: 'instruct',
+                        url: 'instruct/index.html',
+                        vScrollBarEnabled: false,
+                        hScrollBarEnabled: false,
+                        bounces: true
+                    },{
+                        // name: '2Tab',
+                        // url: '2Tab/index.html',
+                        // vScrollBarEnabled: false,
+                        // hScrollBarEnabled: false,
+                        // bounces: true
+                    }, {
+                        name: '3Tab',
+                        url: './../common/my_index.html',
+                        vScrollBarEnabled: false,
+                        hScrollBarEnabled: false,
+                        bounces: false
+                    },,{
+                        name: 'home',
+                        url: './../common/home/index.html',
+                        vScrollBarEnabled: false,
+                        hScrollBarEnabled: false,
+                        bounces: false
+                    }]
+                }, function (ret, err) {
+                });
+            },
+
+        });
+    });
+</script>
+</body>
+
+</html>

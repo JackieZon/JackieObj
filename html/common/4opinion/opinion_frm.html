@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <title>3Tab</title>
+    <style>
+        #app{
+            height: 100%;
+        }
+        .lower{
+            box-sizing: border-box;
+            padding: 15px 0;
+        }
+        .lower .item{
+            box-sizing: border-box;
+            padding-bottom: 15px;
+        }
+        .lower .icon{
+            color: #26a2ff;
+            margin-right: 5px;
+        }
+        .mint-cell-title{
+            display: flex;
+            align-items: center;
+        }
+        .mint-cell-mask{
+            display: none!important;
+        }
+        .mint-cell-wrapper{
+            background-image: none!important;
+        }
+        .mint-cell:last-child{
+            background-image: none!important;
+        }
+
+        .headImg{
+            color:#fff;
+            box-sizing: border-box;
+            padding: 1rem 1.5rem;
+            width:100%;
+            background: linear-gradient(270deg,#37B9FE,#27c5fd 25%,#4e8efe);
+            display: flex;
+            justify-content: center;
+        }
+        .headImg .head{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .headImg .head .img{
+            width: 5rem;
+            height: 5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #26a2ff;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 6px solid rgba(255,255,255,0.35);
+        }
+        .headImg .head .img img{
+            width: 100%;
+            background: rgba(255,255,255,0.8);
+        }
+        .info{
+            box-sizing: border-box;
+            padding: 10px 15px;
+            background: #fff;
+            height: 100%;
+        }
+        .info .intro{
+            margin-top: 15px;
+            text-indent:2em;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>    
+        <div class="headImg" style="display:none">
+            <div class="head">
+                <div class="img">
+                    <img src="./../../../icon/img/app.png" alt="">
+                    <!-- <Icon :name="'head-icon'" :width="'100%'" :height="'100%'" style="background: rgba(255,255,255,0.85);" /> -->
+                </div>
+                <div class="name">{{'系统'}}</div>
+            </div>
+        </div>
+        <div class="lower">
+            <mt-field label="意见反馈" placeholder="填写意见反馈" type="textarea" rows="6" v-model="postData.FeedbackIntro"></mt-field>
+        </div>
+
+        <div class="footer" id="footer">
+            <mt-button type="primary" @click.native="submit">提交反馈</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function(){
+        new Vue({
+            el:'#app',
+            data:{
+                postData:{
+                    'FeedbackIntro':''
+                }
+            },
+            methods:{
+                openPage: function (name,path){
+                    openWin(name,path,{});
+                },
+
+                submit: function (){
+
+                    if(!this.postData.FeedbackIntro){
+                        toastShow('请填写意见！');
+                        return; 
+                    }
+
+                    showLoader();
+
+                    apiAjax({url:'Common/FeedbackAdd',type:'post',param:this.postData},function(data){
+
+                        hideLoader();
+                        toastShow('提交成功，谢谢您的反馈！',2000); 
+
+                        setTimeout(function (){
+                            closeWin()
+                        },1200)
+
+                    }.bind(this));
+                }
+            }
+
+        });
+    })
+</script>
+</html>

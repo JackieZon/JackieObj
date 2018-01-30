@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./../../../script/rem.js"></script>
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <link rel="stylesheet" href="./../../../css/home/index.css">
+    <style>
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="banner">
+            <img src="./../../../image/banner2.jpg" alt="">
+        </div>
+        <div class="home">
+            <div class="box">
+                <div class="option" @click="openDeviceList">
+                    <div class="option-border">
+                        <div class="icon-border" style="background: #4794e8;">
+                            <Icon class="icon" slot="icon" :name="'icon-shake'"></Icon>
+                        </div>
+                    </div>
+                    <p>设备查询</p>
+                </div>
+                <div class="option" @click="openCompanyList">
+                    <div class="option-border">
+                        <div class="icon-border" style="background: #ff554a;">
+                           <Icon class="icon" slot="icon" :name="'icon-punch'"></Icon>
+                        </div>
+                    </div>
+                    <p>单位管理</p>
+                </div>
+                <div class="option" @click="oepnAddTask">
+
+                </div>
+
+                <div class="option" @click="openTaskList">
+                    <div class="option-border">
+                        <div class="icon-border" style="background: #00aaf7;">
+                            <Icon class="icon" slot="icon" :name="'icon-remind'"></Icon>
+                        </div>
+                    </div>
+                    <p>检查任务</p>
+                </div>
+                <div class="option" @click="openInstructList">
+                    <div class="option-border">
+                        <div class="icon-border" style="background: #f7b51c;">
+                            <Icon class="icon" slot="icon" :name="'icon-form'"></Icon>
+                        </div>
+                    </div>
+                    <p>指令书审核</p>
+                </div>
+                <div class="option" @click="openSpecialTaskList">
+                    <div class="option-border" v-if="userTypeName == '巡查员'">
+                        <div class="icon-border" style="background: #47b3e1;">
+                            <Icon class="icon" slot="icon" :name="'icon-edit'"></Icon>
+                        </div>
+                    </div>
+                    <p v-if="userTypeName == '巡查员'">专项任务</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script>
+    subei.ready(function (){
+        var userTypeName = localStorage.UserTypeName;
+        var app = new Vue({
+            el:"#app",
+            data:{
+                userTypeName: userTypeName
+            },
+            methods:{
+                openDeviceList: function (){
+                    switch(this.userTypeName){
+                        case "巡查员" :
+                            openWin('device_list_win','./../../2User_inspect/2Tab/device_list_win.html',{})
+                            break;
+                        case "质检部门" :
+                            openWin('device_list_win','./../../1User_quality/2Tab/device_list_win.html',{})
+                            break;
+                    }
+                },
+                openCompanyList: function (){
+                    openWin("company_list_win","./../../2User_inspect/companyUse/company_list_win.html",{})
+                },
+                oepnAddTask: function(){
+                    openWin('add_win','./../../2User_inspect/addTask/add_win.html')
+                },
+                openSpecialTaskList: function (){
+                    openWin("specialTaskList","./../../2User_inspect/specialTask/specialTaskList_win.html",{})
+                },
+                openTaskList: function (){
+                    switch( this.userTypeName){
+                        case "巡查员" :
+                            d_sendEventExtra("openTaskList",{ num: 0 });
+                            break;
+                        case "质检部门" :
+                            d_sendEventExtra("openTaskList",{ num: 0 });
+                            break;
+                    }
+                },
+                openInstructList: function (){
+                    switch(this.userTypeName){
+                        case "巡查员" :
+                            d_sendEventExtra("openTaskList",{ num: 1 });
+                            break;
+                        case "质检部门" :
+                            d_sendEventExtra("openTaskList",{ num: 1 });
+                            break;
+                    }
+                }
+            }
+        })
+    })
+</script>
+</html>

@@ -1,0 +1,241 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link href="../../css/api.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./../../css/base.css">
+    <link rel="stylesheet" href="./../../css/mint/style.css">
+    <style type="text/css"></style>
+    <title></title>
+    <style>
+        #app{
+            height: 100%;
+        }
+        #app .mint-search{
+            height: auto;
+        }
+        .mint-navbar .mint-tab-item.is-selected{
+            margin: 0px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" ref="app" v-cloak>
+        <div class="header" ref="header" id="header">
+            <mt-header :title="tabText[selected]"></mt-header>
+            <mt-search
+                v-if="selected==1"
+                v-model="search"
+                cancel-text="取消"
+                placeholder="搜索">
+            </mt-search>
+            <mt-navbar v-model="tenanceState" v-if="selected==0">
+                <mt-tab-item id="2">待审核</mt-tab-item>
+                <mt-tab-item id="4">审核通过</mt-tab-item>
+                <mt-tab-item id="3">审核退回</mt-tab-item>
+            </mt-navbar>
+        </div>
+        <mt-tabbar v-model="selected" fixed id="footer">
+            <mt-tab-item id="0">
+                <Icon slot="icon" :name="'icon-remind'"></Icon>
+                {{tabText[0]}}
+            </mt-tab-item>
+            <mt-tab-item id="1">
+                <Icon slot="icon" :name="'icon-form'"></Icon>
+                {{tabText[1]}}
+            </mt-tab-item>
+            <mt-tab-item id="2">
+                <Icon slot="icon" :name="'icon-friend'"></Icon>
+                {{tabText[2]}}
+            </mt-tab-item>
+        </mt-tabbar>
+    </div>
+    <script src="./../../script/api.js"></script>
+    <script src="./../../script/base.js"></script>
+    <script src="./../../script/device.js"></script>
+    <script src="./../../script/jquery.js"></script>
+    <script src="./../../script/vue/vue.js"></script>
+    <script src="./../../script/mint/index.js"></script>
+    <script src="./../../icon/icon/iconfont.js"></script>
+    <script type="text/javascript">
+
+        subei.ready(function () {
+            new Vue({
+                el: '#app',
+                data: {
+                    selected: '0',
+                    tabText: ['维保任务', '设备查询', '我的'],
+                    search:'',
+                    tenanceState:'2',
+                },
+                watch: {
+                    selected: function (val) {
+
+                        showLoader();
+                        api.setFrameGroupIndex({ name: 'indexGroup', index: Number(val) });
+
+                    },
+                    tenanceState: function (val,vals){
+                        console.log('Tab状态||'+val);
+                        execJs('index','1Tab','changeTab('+val+')');
+                    },
+                },
+                mounted: function () {
+                    //退出app
+                    // sb_appExit();
+                    
+                    var header = this.$refs.header;
+                    var footer = document.getElementById('footer').offsetHeight;
+                    $api.fixStatusBar(header);
+
+                    var header_h = $api.offset(header).h;
+                    var winHeight = this.$refs.app.offsetHeight;
+                    var frame_h = winHeight - header_h - footer;
+
+                    watchWindowSize('frameGroup','indexGroup');
+                    api.openFrameGroup({
+                        name: 'indexGroup',
+                        scrollEnabled: false,
+                        rect: { x: 0, y: header_h, w: 'auto', h: frame_h },
+                        index: 0,
+                        frames: [{
+                            name: '1Tab',
+                            url: '1Tab/index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: true
+                        }, {
+                            name: '2Tab',
+                            url: '2Tab/index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: true
+                        }, {
+                            name: '3Tab',
+                            url: './../common/my_index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: false
+                        }]
+                    }, function (ret, err) {
+                        hideLoader();
+                        refreshWindow('frameGroup','indexGroup');
+                    });
+                },
+
+            });
+        });
+
+        // apiready = function () {
+        //     api.parseTapmode();
+
+        //     //打开frame组
+        //     openGroup();
+
+
+        //     //退出app
+        //     sb_appExit();
+
+        //     //监听网络事件；
+        //     d_addEventListener("resume", function (ret) {
+        //         alertShow("请检查网络设置。请确认你的网络已连接。");
+        //     })
+
+        //     d_addEventListener("resume", function (ret) {
+        //         toastShow("网络连接成功！", 1000);
+        //     })
+
+        //     //监听应用从后台回到前台事件；
+        //     d_addEventListener("resume", function (ret) {
+        //         toastShow("欢迎回来！", 3000);
+        //     })
+
+        // };
+
+        // function openGroup() {
+
+        //     var header = $api.byId('aui-header');
+        //     $api.fixStatusBar(header);
+        //     var header_h = $api.offset(header).h;
+
+        //     var footer_h = $api.offset($api.byId('aui-footer')).h;
+        
+        //     var winHeight = api.winHeight;
+        //     var frame_h = winHeight - header_h - footer_h;
+
+        //     api.openFrameGroup({
+        //         // body_h - headerPos.h - footer_h  'auto
+        //         name: 'indexGroup',
+        //         scrollEnabled: false,
+        //         rect: { x: 0, y: header_h, w: 'auto', h: frame_h },
+        //         index: 0,
+        //         frames: [{
+        //             name: 'home',
+        //             url: 'home/index.html',
+        //             vScrollBarEnabled: false,
+        //             hScrollBarEnabled: false,
+        //             bounces: false
+        //         }, {
+        //             name: 'task',
+        //             url: 'task/index.html',
+        //             vScrollBarEnabled: false,
+        //             hScrollBarEnabled: false,
+        //             bounces: true
+        //         }, {
+        //             name: 'device',
+        //             url: 'device/index.html',
+        //             vScrollBarEnabled: false,
+        //             hScrollBarEnabled: false,
+        //             bounces: true
+        //         }, {
+        //             name: 'my',
+        //             url: 'my/index.html',
+        //             vScrollBarEnabled: false,
+        //             hScrollBarEnabled: false,
+        //             bounces: false
+        //         }]
+        //     }, function (ret, err) {
+        //     });
+
+        //     //切换frame组的页面
+        //     $("#aui-footer li").each(function (index, item) {
+        //         $(this).click(function () {
+        //             randomSwitchBtn(index);
+        //         })
+        //     })
+
+        //     //侦听并跳转到指定的frame组中的页面
+        //     d_addEventListener("index", function (ret) {
+        //         $("#aui-footer li").eq(ret.value.index).click();
+        //     })
+        // }
+
+
+
+        // function randomSwitchBtn(index) {
+        //     api.setFrameGroupIndex({ name: 'indexGroup', index: index });
+        //     $("#aui-header .tab").hide();
+        //     $("#aui-header .tab").eq(index).show();
+        //     $("#aui-footer li").removeClass("aui-active");
+        //     $("#aui-footer li").eq(index).addClass("aui-active")
+        // }
+
+
+
+        // // function openScanner(){
+        // //     subei.scanner(function(res){
+
+        // //         if(res.content){
+        // //             openWin('my_bindCar_win','./my/my_bindCar_win.html',{imei:res.content});
+        // //         }
+
+        // //     });
+        // // }
+
+    </script>
+</body>
+
+</html>

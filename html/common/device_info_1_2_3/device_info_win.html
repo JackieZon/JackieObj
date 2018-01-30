@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+</head>
+
+<body>
+    <div class="header" ref="header" id="header">
+        <mt-header title="设备信息">
+            <div slot="left">
+                <mt-button icon="back" onclick="api.closeWin();"></mt-button>
+            </div>
+            <!-- <div slot="right" v-if="userType == 5 && userIsTasker == 1" @click="openTaskAdd()">
+                <Icon :name="'icon-add'" :width="28" :height="28"></Icon>
+            </div> -->
+        </mt-header>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+
+        var deviceId = subei.getParam('deviceId');
+        var companyUseID = subei.getParam('companyUseID');
+        new Vue({
+            el: '#header',
+            data: {
+                userType:'',
+                userIsTasker:''
+            },
+            mounted: function () {
+
+                this.userIsTasker = localStorage.getItem('UserIsTasker')
+
+                this.userType = localStorage.getItem('UserLoginTypeID');
+
+                openFrame('device_info_frm','./device_info_frm.html',{deviceId: deviceId});
+            },
+            methods:{
+                openTaskAdd: function (){
+                    openWin('task_add_inspect_win','./../../2User_inspect/2Tab/task_add_inspect/task_add_inspect_win.html',{deviceId: deviceId,companyId: companyUseID, action:'device'})
+                }
+            }
+        })
+    })
+
+</script>
+
+</html>

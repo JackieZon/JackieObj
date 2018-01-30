@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <style>
+        body { background: #f5f5f5; }
+        #app .task_list { margin-top: 58px; }
+        #app .task_list .mar { margin-top: 10px; }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <mt-navbar v-model="selected" :fixed="true">
+            <mt-tab-item id="1">待反馈</mt-tab-item>
+            <mt-tab-item id="2">待跟踪</mt-tab-item>
+            <mt-tab-item id="3">已完成 </mt-tab-item>
+        </mt-navbar>
+        <div class="task_list">
+            <inspect-list class="mar" v-for="(item, index) in searchList" :key="index" :item="item" :state="1" @click.native="openInspectInfo(item)"></inspect-list>
+            <no-data :item="searchList" :load="getTaskCheckList"></no-data>
+        </div>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+        new Vue({
+            el: "#app",
+            data: {
+                searchList: [],
+                selected: '1',
+                searchValue:{ PageSize: 10, PageIndex: 1, RowCount: 0,keyword: null}
+            },
+            mounted: function (){
+
+                subei.getDataInit(this, function () {
+
+                    this.searchValue.keyword = '';
+                    this.getTaskCheckList()
+
+                }.bind(this));
+
+            },
+            methods: {
+                openInspectInfo: function (item) {
+                    openWin('inspect_info', './../../common/task_info_1_2/inspect_info_win.html', {taskId:item.ID})
+                },
+                getTaskCheckList: function (){
+                    showLoader();
+                    //http://app-lift2.subei88.com:8080/api/Device/TaskCheck
+                    apiAjax({url:'Device/TaskCheck/?ListDataType=' + this.selected,type:'post',param:this.searchValue},function(data,total){
+
+                        hideLoader();
+                        this.searchValue.RowCount = total || 0;
+                        data = this.filterTime(data)
+                        this.searchList = this.searchList.concat(data);
+                        // console.log('我是检查任务列表数据'+JSON.stringify(data))
+                        
+                    }.bind(this))
+                },
+
+                
+                filterTime: function (data){
+
+                    if(data !== []){
+                        var dateIndex ="";
+                        
+
+                        for(var i = 0; i < data.length; i++){
+
+                            dateIndex = data[i].CheckResultEndDate.indexOf('T');
+                            data[i].CheckResultEndDate = data[i].CheckResultEndDate.substr(0,dateIndex);
+                        }
+
+                    }
+                    return data;
+                }
+            },
+            watch:{
+                selected: function (){
+                    this.searchList = [];
+                    this.getTaskCheckList()
+                }
+            }
+        })
+    })
+
+</script>
+
+</html>

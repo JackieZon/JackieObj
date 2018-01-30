@@ -1,0 +1,387 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" href="../../css/base.css"/>
+    <link rel="stylesheet" href="./../../css/mint/style.css"/>
+    <style type="text/css"></style>
+    <title></title>
+    <style>
+        #app{
+            height: 100%;
+        }
+        .mint-search{height: auto;}
+        .mint-navbar .mint-tab-item.is-selected{
+            margin-bottom: 0!important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" ref="app">
+        <div class="header" ref="header" id="header">
+            <mt-header :title="tabText[selected]">
+                <Icon v-if="selected==0" slot="right" :name="'icon-add'" :width="28" :height="28" @click.native="openTaskAddInspect()"></Icon>
+                <Icon v-if="selected==5" slot="right" :name="'icon-scan'" :width="26" :height="26" @click.native="openScan"></span>
+                <span v-if="selected==2" slot="right" :name="'icon-add'" :width="28" :height="28" @click="filterDevice">{{ searchStatus == 0 ? '筛选' : '已筛选' }}</span>
+                <!-- <span v-if="selected == 4" slot="right" :name="'icon-add'" :width="28" :height="28" @click="filterDevice">筛选</span> -->
+            </mt-header>
+
+            <mt-navbar v-if="selected==0" v-model="selectedTask">
+                <mt-tab-item id="B3" @click.native = "changeTabs">待接收</mt-tab-item>
+                <mt-tab-item id="B1" @click.native = "changeTabs">待反馈</mt-tab-item>
+                <mt-tab-item id="B5" @click.native = "changeTabs">处理中</mt-tab-item>
+                <mt-tab-item id="B2" @click.native = "changeTabs">已反馈</mt-tab-item>
+                <mt-tab-item id="B4" @click.native = "changeTabs">全部</mt-tab-item>
+            </mt-navbar>
+            
+            <mt-search
+                v-if="selected==2"
+                v-model="search"
+                cancel-text="取消"
+                placeholder="搜索">
+            </mt-search>
+
+            <!-- <mt-search
+                v-if="selected==4"
+                v-model="company_search"
+                cancel-text="取消"
+                placeholder="模糊搜索(单位名称、单位地址、联系人)">
+            </mt-search> -->
+
+            <mt-navbar v-if="selected==1" v-model="instructStatus">
+                <mt-tab-item id="1,2">待处理</mt-tab-item>
+                <mt-tab-item id="3">已审核</mt-tab-item>
+            </mt-navbar>
+
+        </div>
+        <mt-tabbar v-model="selected" fixed id="footer">
+            <mt-tab-item id="5">
+                <Icon slot="icon" :name="'icon-home'"></Icon>
+                {{tabText[5]}}
+            </mt-tab-item>
+            <mt-tab-item id="0">
+                <Icon slot="icon" :name="'icon-remind'"></Icon>
+                {{tabText[0]}}
+            </mt-tab-item>
+            <mt-tab-item id="1">
+                <Icon slot="icon" :name="'icon-form'"></Icon>
+                {{tabText[1]}}
+            </mt-tab-item>
+            <!-- <mt-tab-item id="2">
+                <Icon slot="icon" :name="'icon-shake'"></Icon>
+                {{tabText[2]}}
+            </mt-tab-item>
+            <mt-tab-item id="4">
+                <Icon slot="icon" :name="'icon-punch'"></Icon>
+                {{tabText[4]}}
+            </mt-tab-item> -->
+            <mt-tab-item id="3">
+                <Icon slot="icon" :name="'icon-friend'"></Icon>
+                {{tabText[3]}}
+            </mt-tab-item>
+        </mt-tabbar>
+    </div>
+    <script src="./../../script/api.js"></script>
+    <script src="./../../script/base.js"></script>
+    <script src="./../../script/device.js"></script>
+    <script src="./../../script/jquery.js"></script>
+    <script src="./../../script/vue/vue.js"></script>
+    <script src="./../../script/mint/index.js"></script>
+    <script src="./../../icon/icon/iconfont.js"></script>
+    <script type="text/javascript">
+
+        subei.ready(function () {
+
+            d_addEventListener('sortA1',function(data){
+                app.selected = '0';
+                app.selectedTask = 'B1';
+            });
+
+            d_addEventListener('sortA2',function(data){
+                app.selected = '0';
+                app.selectedTask = 'B1';
+            });
+
+            window.app = new Vue({
+                el: '#app',
+                data: {
+                    num: 1,
+                    selected: 5,
+                    tabText: ['检查任务','指令书', '设备查询', '我的','单位管理','首页'],
+                    search: '',
+                    // company_search:'',
+                    instructStatus: '1,2',
+                    selectedTask: 'B4',
+                    searchStatus:0,
+                    defaultData:{
+                        DeviceName: '',
+                        DeviceModel: '',
+                        DeviceNo: '',
+                        DeviceRegNo: '',
+                        DeviceCertNo: '',
+
+                        DeviceType1: '',
+                        // DeviceType2: '',
+                        DeviceStatus: '',
+                        DeviceUseName: '',
+                        DeviceFullAddress: '',
+                        DeviceArea4: ''
+                    },
+                },
+                watch: {
+                    selected: function(val) {
+                        showLoader();
+                        api.setFrameGroupIndex({ name: 'indexGroup', index: Number(val) });
+                    },
+                    instructStatus: function(val,vals) {
+                        // showLoader();
+                        execJs('index','instruct','changeTab('+val+')');
+                    },
+                    search: function (){
+
+
+                    },
+                    // company_search: function (val){
+
+                    //     execJs('index','companyUse','search("'+ val +'")');
+
+                    // }
+                    // selectedTask: function(val,vals){
+                    //     execJs('index','1Tab','changeTab("'+val+'")');
+                    // }
+                },
+                methods:{
+
+                    openScan: function (){
+
+                        var FNScanner = api.require('FNScanner');
+                        
+                        var type = "device";
+                            FNScanner.openScanner({
+                                autorotation: true
+                            }, function(ret, err) {
+                                if (ret) {
+                                    // alert('成功信息'+JSON.stringify(ret))
+                                    if(ret.eventType == 'success'){
+                                        var deviceId = ret.content.split(',')[0];
+                                        openWin('device_info_win','./../common/device_info_1_2_3/device_info_win.html',{deviceId: deviceId});
+                                    }
+                                    // if(type = "device"){
+                                    //     openWin("deviceInfo_win","./../common/device_info_1_2_3/device_info_win.html",{deviceId: 513304})
+                                    // }
+                                    // alert(JSON.stringify(ret));
+                                } else {
+                                    // alert('失败信息'+JSON.stringify(err))
+                                    // alert(JSON.stringify(err));
+                                }
+                            });
+                    },
+
+                    changeTabs: function(){
+                        execJs('index','1Tab','changeTab("'+this.selectedTask+'")');
+                    },
+
+                    openTaskAddInspect: function() {
+                        openWin('task_add_inspect','./2Tab/task_add_inspect/task_add_inspect_win.html',{ deviceId: 0 });
+                    },
+
+                    filterDevice: function(){
+                        
+                        // d_sendEventExtra("filter_device",{filterDevice: true});
+                        
+                        var winHeight = document.body.offsetHeight;
+
+                        api.openFrame({
+                            name: 'search',
+                            url: './../common/search/search_frm.html',
+                            pageParam: {defaultData: JSON.stringify(this.defaultData)},
+                            bounces: false,
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            rect: {
+                                x: 0,
+                                y: 0,
+                                w: 'auto',
+                                h: winHeight
+                            },
+                            bgColor: 'rgba(0,0,0,0.3)',
+                            animation: {
+                                type: 'movein',              //动画类型（详见动画类型常量）
+                                subType: "from_bottom",      //动画子类型（详见动画子类型常量）
+                                duration: 100                //动画过渡时间，默认300毫秒
+                            }
+                        });
+
+                    },
+                    forbiddenReturn: function (){
+
+                        var num = 0;
+
+                        var time1,time2;
+
+
+                        api.addEventListener({
+                            name: 'keyback'
+                        },function (){
+                            
+                            if( num == 0 ){
+                                time1 = new Date().getTime();
+                                num = 1;
+                                api.toast({msg:'再按一次退出程序！'})
+                            }else if( num == 1 ){
+                                
+                                time2 = new Date().getTime();
+
+                                if(time2 - time1 < 3000){
+
+                                    api.closeWidget({
+                                        id : api.appId,
+                                        retData : {
+                                            name : 'closeWidget'
+                                            },
+                                            silent : true
+                                    })
+                                }else{
+                                    num = 0;
+                                    api.toast({ msg:'再按一次退出程序！' })
+                                }
+
+                            }
+
+                        })
+
+                    }
+                },
+                mounted: function () {
+                    //接收任务提交后发出的广播
+
+                    this.forbiddenReturn();
+                    d_addEventListener('openTaskList', function (res) {
+                        this.selected = String(res.value.num);
+                        this.selectedTask = 'A1';
+                        api.setFrameGroupIndex({ name: 'indexGroup', index: Number(res.value.num) });
+                    }.bind(this));
+
+                    d_addEventListener('task_submit_ok', function (res) {
+
+                        d_sendEventExtra("task_add_refresh",{ status: res.value.status });
+                        if(res.value.status == 'A1'){
+                            this.selected = '1';
+                            api.setFrameGroupIndex({ name: 'indexGroup', index: Number('1') });
+
+                        }else if(res.value.status == 'A3'){
+
+                            this.selectedTask = 'A3';
+                            this.selected = '0';
+                            this.changeTabs();
+                            api.setFrameGroupIndex({ name: 'indexGroup', index: Number('0') });   
+
+                        }else{
+                            this.selected = '0';
+                            api.setFrameGroupIndex({ name: 'indexGroup', index: Number('0') });    
+                        }
+                        
+                    }.bind(this));
+
+                    //接收任务暂存、添加完成后发出的广播
+                    d_addEventListener('task_add_ok', function (res) {
+
+                        d_sendEventExtra("task_add_refresh",{status: res.value.status});
+                        this.selected = '0';
+                        api.setFrameGroupIndex({ name: 'indexGroup', index: Number('0') });
+                        
+                    }.bind(this));
+
+                    d_addEventListener('task_schedule_ok', function (res) {
+
+                        d_sendEventExtra("task_add_refresh",{status: res.value.status});
+                        this.selected = '0';
+                        api.setFrameGroupIndex({ name: 'indexGroup', index: Number('0') });
+                    }.bind(this));
+
+                    // d_addEventListener('searchChange', function (res) {
+                    //     this.defaultData = JSON.parse(res.value.defaultData);
+                    //     this.searchStatus = JSON.parse(res.value.searchChange);
+                        
+                    // }.bind(this));
+
+                  
+
+
+                    //退出app
+                    // sb_appExit();
+                    
+                    var header = this.$refs.header;
+                    var footer = document.getElementById('footer').offsetHeight;
+                    $api.fixStatusBar(header);
+
+                    var header_h = $api.offset(header).h;
+                    var winHeight = this.$refs.app.offsetHeight;
+                    var frame_h = winHeight - header_h - footer;
+
+                    watchWindowSize('frameGroup','indexGroup');
+
+                    api.openFrameGroup({
+                        name: 'indexGroup',
+                        scrollEnabled: false,
+                        rect: { x: 0, y: header_h, w: 'auto', h: frame_h },
+                        index: 5,
+                        frames: [{
+                            name: '1Tab',
+                            url: '1Tab/index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: true
+                        }, {
+                            name: 'instruct',
+                            url: 'instruct/index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: true
+                        },{
+                            //  {
+                            //     name: '2Tab',
+                            //     url: '2Tab/index.html',
+                            //     vScrollBarEnabled: false,
+                            //     hScrollBarEnabled: false,
+                            //     bounces: true
+                            // },
+                        },
+                        
+                         {
+                            name: '3Tab',
+                            url: './../common/my_index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: false
+                        },{
+                            // , {
+                            //     name: 'companyUse',
+                            //     url: 'companyUse/index.html',
+                            //     vScrollBarEnabled: false,
+                            //     hScrollBarEnabled: false,
+                            //     bounces: false
+                            // }
+                        },{
+                            name: 'home',
+                            url: './../common/home/index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: false
+                        }]
+                    }, function (ret, err) {
+                        hideLoader();
+                        refreshWindow('frameGroup','indexGroup');
+                    });
+                },
+
+            });
+        });
+
+    </script>
+</body>
+
+</html>

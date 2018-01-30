@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <link rel="stylesheet" href="./../../../css/specialTaskInfo/specialTaskInfo.css">
+    <script src="./../../../script/rem.js"></script>
+    <title>专项任务</title>
+</head>
+<body>
+    <div id="app">
+    
+        <div class="device_info">
+            <div class="company_title">
+                <p>使用单位</p>
+            </div>
+            <mt-field label="单位名称" :value="specialTaskInfo.TaskCompanyName | s_toStr" disabled></mt-field>
+        </div>
+        
+        <div class="device_info">
+            <div class="company_title">
+                <p>设备信息</p>
+            </div>
+            <mt-field label="设备名称" :value="specialTaskInfo.TaskDeviceName | s_toStr" disabled></mt-field>
+            <mt-field label="证书编号" :value="specialTaskInfo.TaskDeviceCertNo | s_toStr" disabled></mt-field>
+            <mt-field label="设备型号" :value="specialTaskInfo.TaskDeviceModel | s_toStr" disabled></mt-field>
+            <mt-field label="额定出力(t/h)" :value="specialTaskInfo.TaskDeviceRating | s_toStr" disabled></mt-field>
+            <mt-field label="原燃料种类" :value="specialTaskInfo.TaskDeviceFuelTypeName | s_toStr" disabled></mt-field>
+            <mt-field label="使用状态" :value="specialTaskInfo.TaskDeviceStatusName | s_toStr" disabled></mt-field>
+        </div>
+        <div class="device_info">
+            <div class="company_title">
+                <p>任务信息</p>
+            </div>
+            <mt-field label="是否合格" :value="specialTaskInfo.TaskCheckResults==1?'是':'否'" disabled></mt-field>
+            <mt-field label="处理方式" :value="specialTaskInfo.TaskCheckResultsReasonName | s_toStr" disabled></mt-field>
+            <mt-field label="罚款金额" :value="specialTaskInfo.TaskCheckSum | s_toStr" disabled></mt-field>
+            <mt-field label="扣除诚信分数" :value="specialTaskInfo.TaskCheckPoint | s_toStr" disabled></mt-field>
+            <mt-field label="任务检查日期" :value="specialTaskInfo.TaskCheckDate | s_toDate" disabled></mt-field>
+            <mt-field label="整改截止日期" :value="specialTaskInfo.TaskCheckChangedEndDate | s_toDate" disabled></mt-field>
+
+            <div class="inspect_content">
+                <mt-field label="存在问题" v-model="specialTaskInfo.TaskCheckProblemIntro" type="textarea" rows="4" disabled></mt-field>
+            </div>
+            <div class="inspect_content">
+                <mt-field label="整改措施" v-model="specialTaskInfo.TaskCheckChangedInfo" type="textarea" rows="4" disabled></mt-field>
+            </div>
+            <div class="inspect_content">
+                <mt-field label="备注" v-model="specialTaskInfo.TaskCheckRemark" type="textarea" rows="4" disabled></mt-field>
+            </div>
+        </div>
+
+        <div class="device_info">
+            <mt-cell title="现场图片"></mt-cell>
+            <div class="image" v-if="specialTaskInfo.TaskCheckPhotoListPath.length>0"  v-for="(item,index) in specialTaskInfo.TaskCheckPhotoListPath" @click="imgView(index)">
+                <img class="img" v-cache="item.url.indexOf('http')>-1?item.url:'http://app-lift2.subei88.com'+item.url" alt="暂无">
+            </div>
+        </div>
+
+        <div class="footer">
+            <mt-button type="primary" size="large" @click="editPage">编辑</mt-button>
+        </div>
+
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script>
+    
+    subei.ready(function () {
+        new Vue({
+            el: '#app',
+            data: {
+                taskId: '',
+                specialTaskInfo: {},
+            },
+            mounted: function (){
+                //存入设备Id
+                this.taskId = subei.getParam('id');
+                this.getDeviceInfo();
+                var t_data = this;
+                d_addEventListener('refresh', function(){
+                    t_data.getDeviceInfo();
+                })
+            },
+            methods: {
+
+                openAegisInfo: function (item){
+                    openWin('aegis_info','./aegis_info/aegis_info_win.html',{taskId: item.ID})
+                },
+
+                openYearInspectInfo: function (){
+                    openWin('year_inspect_info','./year_inspect_info/year_inspect_info_win.html',{})
+                },
+
+                openInspectInfo: function (item){
+                    openWin('inspect_info','./inspect_info/inspect_info_win.html',{taskId: item.ID})
+                },
+
+                getDeviceInfo: function (){
+
+                    apiAjax({url:'TaskCheck/TaskCheck_No94/'+this.taskId ,type:'post',param:{}},function(data,total){
+
+                        console.log('这是专项任务'+JSON.stringify(data));
+                        this.specialTaskInfo = data;
+
+                        // var DevicePhotosPath = this.specialTaskInfo.DevicePhotosPath;
+
+                        // if(DevicePhotosPath.length>0){
+                        //     DevicePhotosPath = DevicePhotosPath.map(function(i){
+                        //         i.url = (i.url.indexOf('http://')>-1?i.url:base_url_photo+i.url);
+                        //         return i
+                        //     });
+                        // }
+
+                    }.bind(this));
+
+                },
+                editPage: function(){
+                    openWin('add_win','./../addTask/add_win.html',{item: JSON.stringify(this.specialTaskInfo)})
+                },
+                editDevice: function (){
+                    openWin('device_edit_win','./../../2User_inspect/2Tab/device_edit/device_edit_win.html',{deviceId: this.deviceId});
+                },
+                imgView: function (index){
+                    var imgArr = [];
+                    for(var i=0; i<this.specialTaskInfo.TaskCheckPhotoListPath.length; i++){
+                        var img = this.specialTaskInfo.TaskCheckPhotoListPath[i].url
+                        var url = (img.indexOf('http')>-1?img:base_url_photo+img)
+                        imgArr.push(url);
+                    }
+                    console.log(JSON.stringify(imgArr))
+                    subei.imgPreview(index,imgArr);
+                },
+                filiterDate: function (date){
+                    
+                    var dateLength = date.indexOf('T');
+                    var result = date.slice(0,dateLength);
+
+                    return result;
+
+                }
+            }
+        });
+    });
+
+</script>
+</html>

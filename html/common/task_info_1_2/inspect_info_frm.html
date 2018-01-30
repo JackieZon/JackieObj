@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <style>
+        html,body,#app { height: 100%; }
+        body { background: #f5f5f5; }
+        img { width: 25px; height: 25px; padding-right: 10px; }
+        .download { width: 70px; font-size: 13px; }
+        .new { color:  #1296db; }
+        .new_oper { color: #13227a; }
+	 #app{ box-sizing: border-box; padding-bottom: 15px; }
+
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+                    #app .record .record_list .record_content { display: flex; justify-content: space-between; align-items: center;}
+                    #app .record .record_list p { font-size: 14px; line-height: 30px; display: flex; align-items: center; }
+
+        #app .regulations { padding-top: 10px; background: #f5f5f5; }
+            #app .regulations textarea{ resize: none; height: 200px; font-size: 15px; }
+
+        #app .inspect_info{ padding-top: 10px; background: #f5f5f5; }
+            #app .inspect_info .title{ padding-left: 10px; font-size: 12px; color: #888; }
+            #app .inspect_info textarea{ resize: none; height: 80px; font-size: 15px; }
+                #app .inspect_info .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; padding: 10px;  background: white; border-top: 1px solid #d9d9d9; }
+                    #app .inspect_info .maintenance_data p { width:80px; margin-right: 15px; }
+                    #app .inspect_info .maintenance_data .image { width: 80px; height: 80px; padding: 8px; }
+                        #app .inspect_info .maintenance_data .image img{ width: 100%; height: 100%; padding: 0; }
+        #app .table { padding: 10px 10px 0 10px; background: white; }
+            #app .table table { width: 100%; }
+                #app .table table tr { height: 40px; }
+                    #app .table table tr th { width: 25%; background: #8a8a8a; }
+                    #app .table table tr td { width: 25%; text-align: center; border:1px solid #8a8a8a; font-size: 14px; }
+
+        #app .inspect_info .programme{ display: flex; background: white; }
+            #app .inspect_info .programme .but{ width: 111px; height: 90px; border-top: 1px solid #d9d9d9; padding-right:10px; display: flex; align-items: center; background: white; }
+                #app .inspect_info .programme .but button { font-size: 14px; }
+        #app .button { display: flex; }
+        #app .button button { margin: 10px; }
+
+        #app .mint-popup { width: 100%; }
+        #app .mint-popup textarea{ resize: none; height: 60px; font-size: 15px; }
+        #app .examine .mint-cell-wrapper { background: #ffffff; }
+        #app .examine .mint-field.is-textarea .mint-cell-title { padding: 10px 0 10px 15px; }
+
+        #app .refuse { width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); position: fixed; top: 0%; }
+            #app .refuse .refuse_content { width:100%; height:100%; display: flex; align-items: center; justify-content: center; }
+                #app .refuse .refuse_content .content{ width: 90%; background: white;  box-sizing: border-box; padding:10px; text-align: center; height: 190px; }
+                #app .refuse .refuse_content .content .but { display: flex; justify-content:space-around; margin-top: 40px; }
+                    #app .refuse .refuse_content .content .reason { width: 100%; height: 45%; border-radius: 10px; border: 1px #d9d9d9 solid; box-sizing:border-box; padding: 10px; }
+                        .refuse_content .content .reason textarea { width: 100%; height: 100%; resize: none; font-size: 14px; }
+
+        #app .schedule { padding-left: 14px; }
+            #app .schedule .deviceStatus { display: flex; align-items: center; }
+                #app .schedule .deviceStatus p { padding: 0 22px 0 10px; }
+                #app .schedule .deviceStatus select { background: white; width: 35%; height: 30px; font-size: 15px;  }
+
+
+        .mar-top { width: 100%; height: 50px; }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+
+        <mt-navbar :fixed="true" v-model="selected">
+            <mt-tab-item id="1">任务信息</mt-tab-item>
+            <mt-tab-item v-if="taskCheckInfo.CheckStatus == 4 || taskCheckInfo.CheckStatus == 5 || taskCheckInfo.CheckStatus == 6 || taskCheckInfo.CheckStatus == 7" id="2">任务结果</mt-tab-item>
+            <mt-tab-item id="3">状态记录</mt-tab-item>
+            <mt-tab-item v-if="taskCheckInfo.TrackStatus == 6" id="4">反馈任务</mt-tab-item>
+        </mt-navbar>
+
+
+        <mt-tab-container v-model="selected">
+
+            <mt-tab-container-item id="1">
+                <div class="mar-top"></div>
+                <div>
+                    <div v-if="taskCheckInfo.DeviceID">
+                        <ul class="record">
+                            <li class="record_list" @click="openDeviceInfo(taskCheckInfo.DeviceID)">
+                                <p><img src="./../../../image/registered.svg" alt="">设备注册码 : <span>&nbsp;{{ deviceInfo.DeviceRegNo | s_toStr }}</span></p>
+                                <p><img src="./../../../image/no.svg" alt="">证书编号 : <span>&nbsp;{{ deviceInfo.DeviceNo | s_toStr }}</span></p>
+                                <div class="record_content">
+                                    <p><img src="./../../../image/deviceName.svg" alt="">设备名称 : <span>&nbsp;{{ deviceInfo.DeviceName | s_toStr }}</span></p>
+                                    <img src="./../../../image/arrow.svg" alt="">
+                                </div>
+                                <p><img src="./../../../image/numbering.svg" alt="">出厂编号 : <span>&nbsp;{{ deviceInfo.DeviceProduceNo | s_toStr }}</span></p>
+                                <div class="record_content">
+                                    <p><img src="./../../../image/type.svg" alt=""><div style="width: 243px; height: 18px; font-size:14px; overflow:hidden;">设备种类 : <span>&nbsp;{{ deviceInfo.DeviceTypeName1 | s_toStr }}-{{deviceInfo.DeviceTypeName2 | s_toStr }}</span></div></p>
+                                    <p class="new">
+                                        <!-- <img src="./../../../image/status.svg" alt=""> -->
+                                        状态: <span>{{ deviceInfo.DeviceStatusName | s_toStr }}</span>
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div v-else style="width: 100%; height: 80px; margin-top: 10px; background: white; display: flex; justify-content: center; align-items: center; ">
+                        <h3>未关联设备</h4>
+                    </div>
+
+                    <div class="inspect_info">
+                        <p class="title">任务信息</p>
+                        <mt-field label="任务编号" :value="taskCheckInfo.CheckNo | s_toStr" disabled></mt-field>
+                        <mt-field label="任务类型" :value="taskCheckInfo.CheckTypeName | s_toStr" disabled></mt-field>
+                        <mt-field label="任务添加人" :value="taskCheckInfo.CheckAddManName | s_toStr" disabled></mt-field>
+                        <mt-field label="任务状态" :value="taskCheckInfo.CheckStatusName | s_toStr" disabled>
+                             <!-- <mt-button v-if="taskCheckInfo.CheckStatus >= 4" class="download" type="primary" size="large" @click="downloadPDF">下载PDF</mt-button> -->
+                        </mt-field>
+                    </div>
+                    <div class="inspect_info">
+                        <p class="title">任务时间</p>
+                        <mt-field label="派发时间" :value="taskCheckInfo.CheckAddDate | s_toDate" disabled></mt-field>
+                        <mt-field label="最晚反馈时间" :value="taskCheckInfo.CheckResultEndDate | s_toDate" disabled></mt-field>
+                    </div>
+                    <div class="inspect_info" style="margin-bottom: 10px;">
+                        <p class="title">任务要求</p>
+                        <mt-field label="任务描述" :value="taskCheckInfo.CheckIntro | s_toStr" type="textarea" rows="4" disabled></mt-field>
+                    </div>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="2">
+                <div class="mar-top"></div>
+
+                <div class="task_review" v-if="taskCheckInfo.CheckStatus == 6 || taskCheckInfo.CheckStatus == 7">
+                    <div class="inspect_info">
+                        <mt-field label="审核状态" :value="taskCheckInfo.CheckStatusName | s_toStr" disabled></mt-field>
+                        <mt-field label="审核时间" :value="taskCheckInfo.CheckAuditDate | s_toDate" disabled></mt-field>
+                        <mt-field label="审核描述" :value="taskCheckInfo.CheckAuditIntro | s_toStr" type="textarea" rows="4" disabled></mt-field>
+                    </div>
+                </div>
+
+                <div class="task_result">
+
+                    <div class="inspect_info">
+                        <mt-field label="处理措施" :value="taskCheckInfo.CheckResulTreatment | s_toStr" disabled><mt-button v-if="taskCheckInfo.CheckResulTreatmentID==0" size="small" @click="openInspect(taskCheckInfo.CommandStatus,taskCheckInfo.CommandAuditMan1)">{{(taskCheckInfo.CommandStatus == 3 || UserTypeName=='质检部门' || taskCheckInfo.CommandAuditMan1 > 0)?'查看指令书':'编辑指令书'}}</mt-button><mt-button v-if="taskCheckInfo.CommandStatus == 3" size="small" @click="downloadPDF">下载指令书</mt-button></mt-field>
+                        <mt-field label="检查日期" :value="taskCheckInfo.CheckResultDate | s_toDate" disabled></mt-field>
+                        <!-- <mt-field label="整改截止日期" :value="taskCheckInfo.CheckChangedEndDate | s_toDate" disabled></mt-field>   -->
+                    </div>
+
+                    <div class="inspect_info">
+                        <div class="maintenance_data">
+                            <p>现场图片</p>
+                            <div class="image" v-if="taskCheckInfo.CheckResultPhotoList.length!==0" v-for="(item,index) in taskCheckInfo.CheckResultPhotoList" @click="imgView(index,1)">
+                                <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="inspect_info">
+                        <mt-field label="任务说明" disabled ></mt-field>
+                        <mt-field v-model="taskCheckInfo.CheckResultIntro" type="textarea" rows="7" disabled></mt-field>
+                    </div>
+
+                    <!-- <div v-if="taskCheckInfo.CheckResulTreatment == '下达指令书'">
+
+                        <div class="regulations">
+                            <mt-field label="违反法律条款" v-model="taskCheckInfo.CheckAgainstRulesNames" disabled ></mt-field>
+                            <mt-field v-model="taskCheckInfo.CheckAgainstRulesInfo"  type="textarea" rows="7" disabled></mt-field>
+                        </div>
+
+                        <div class="regulations">
+                            <mt-field label="依据法律条款" v-model="taskCheckInfo.CheckCcordingRulesNames" disabled ></mt-field>
+                            <mt-field v-model="taskCheckInfo.CheckCcordingRulesInfo"  type="textarea" rows="7" disabled></mt-field>
+                        </div>
+
+                        <div class="regulations">
+                            <mt-field label="整改措施" v-model="taskCheckInfo.CheckChangedNames" disabled ></mt-field>
+                            <mt-field v-model="taskCheckInfo.CheckChangedInfo" type="textarea" rows="7" disabled></mt-field>
+                        </div>
+
+                    </div> -->
+
+                    <!-- <div class="inspect_info" v-if="taskCheckInfo.CheckResultCmdList !== [] && taskCheckInfo.CheckResulTreatment == '下达指令书'">
+                        <div class="maintenance_data">
+                            <p>监察指令书</p>
+                            <div class="image" v-if="taskCheckInfo.CheckResultCmdList.length!==0" v-for="(item,index) in taskCheckInfo.CheckResultCmdList" @click="imgView(index,2)">
+                                <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <!-- <div class="inspect_info" v-if="taskCheckInfo.CheckResulTreatment == '下达指令书' || taskCheckInfo.CheckResulTreatment == '直接封查'">
+                        <mt-field label="单位意见" :value="taskCheckInfo.CheckResulOpinion | s_toStr" type="textarea" rows="4" disabled></mt-field>
+                        <div class="inspect_info">
+                            <mt-field label="单位确认人" :value="taskCheckInfo.CompanyUseConfirmMan | s_toStr" disabled></mt-field>
+                            <mt-field label="联系电话" :value="taskCheckInfo.CompanyUseConfirmManPhone | s_toStr" disabled></mt-field>
+                        </div>
+                    </div> -->
+
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="3">
+                <div class="mar-top"></div>
+                <ul class="record">
+                    <li class="record_list" v-for="(item,index) in taskCheckInfo.ListTaskCheckLog" :class="index == 0 ? 'new' : ''">
+                        <div class="record_content">
+                            <p><img src="./../../../image/operating.svg" alt="">操作 : <span :class="index == 0 ? 'new_oper' : ''">&nbsp;{{ item.TaskCheckLogActive | s_toStr }}</span></p>
+                            <p><img src="./../../../image/status.svg" alt="">状态 : <span>&nbsp;{{ item.TaskCheckStatusName | s_toStr }}</span></p>
+                        </div>
+                        <p><img src="./../../../image/man.svg" alt="">操作人 : <span>&nbsp;{{ item.TaskCheckLogManName | s_toStr }}</span></p>
+                        <p><img src="./../../../image/phone.svg" alt="">联系电话 : <span>&nbsp;{{ item.TaskCheckLogManPhone | s_toStr }}</span></p>
+                        <p><img src="./../../../image/company.svg" alt="">所属部门 : <span>&nbsp;{{ item.TaskCheckDeptName | s_toStr }}</span></p>
+                        <p><img src="./../../../image/time.svg" alt="">操作时间 : <span>&nbsp; {{ item.TaskCheckLogDate | s_toDate }}</span></p>
+                    </li>
+                </ul>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="4">
+
+                <div class="mar-top"></div>
+
+                <track-list v-for="(item, index) in trackList" :key="index" :item="item" :state="1" @click.native="openTarckInfo(item)"></track-list>
+
+            </mt-tab-container-item>
+
+        </mt-tab-container>
+
+        <div class="refuse" v-if="refuse">
+            <div class="refuse_content">
+                <div class="content">
+                    <div class="reason">
+                        <textarea placeholder="请输入拒绝原因" v-model="desc"></textarea>
+                    </div>
+                    <div class="but">
+                        <mt-button style="width: 47%;" size="large" type="primary" @click.native="taskRefuse">确定</mt-button>
+                        <mt-button style="width: 47%;" size="large" type="danger"  @click.native="switchRefuse">取消</mt-button>
+                    </div>
+                    <!-- <mt-field placeholder="请输入拒绝原因" type="textarea" rows="4" v-modal="introduction"></mt-field> -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能 -->
+        <div style="width: 100%; height: 60px;" v-if="(userIsTasker == 1 || userIsTasker == 0) && (taskCheckInfo.CheckStatus < 4 || taskCheckInfo.CheckStatus == 5) && !refuse"></div>
+        <div class="footer" v-if="userIsTasker == 1 && taskCheckInfo.CheckStatus < 4 && taskCheckInfo.CheckStatus !== 3 && !refuse">
+            <mt-button type="primary" size="large" @click="submitTask" v-if="(userType == 5 && userIsTasker == 1 && taskCheckInfo.CheckStatus == 2)">处理任务</mt-button>
+            <div style="display: flex; justify-content: space-around;" v-if="userType == 5 && userIsTasker == 1 && taskCheckInfo.CheckStatus == 1">
+                <mt-button style="width: 47%;" type="primary" size="normal" @click="taskReceive">接收任务</mt-button>
+                <mt-button style="width: 47%;" type="danger" size="normal" @click="switchRefuse">拒绝接收</mt-button>
+            </div>
+            <!-- <mt-button type="primary" size="large" @click="taskRegister" v-if="userType == 5 && userIsTasker == 1 && taskCheckInfo.CheckStatus == 2">任务签到</mt-button>  -->
+        </div>
+
+        <div class="footer" v-if="userIsTasker == 0 && (taskCheckInfo.CheckStatus < 4 || taskCheckInfo.CheckStatus == 5)">
+            <mt-button type="primary" size="large" @click="endTask" v-if="userType == 5 && userIsTasker == 0 && taskCheckInfo.CheckStatus == 5">闭环归档</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready( function (){
+
+        var taskId = subei.getParam('taskId');
+
+        new Vue({
+            el:"#app",
+            data:{
+                UserTypeName: '',
+                //质监部门审核
+                examineValue: false,
+                result:'通过',
+                //巡查人员任务跟踪
+                scheduleValue: false,
+                scheduleResult: '提交跟踪进度说明',
+                taskCheckInfo:{},
+                userType:'',
+                desc:"",
+                refuse:false,
+                userIsTasker:'',
+                deviceInfo:{},
+                selected:'1',
+                lon:'',
+                lat:'',
+                status:'',
+                deviceStatusList: [
+                    { text: "未使用", id:0 },
+                    { text: "在用", id:1 },
+                    { text: "停用", id:2 },
+                    { text: "检测中", id:3 },
+                    { text: "整改中", id:4 }
+                ],
+                trackList: [],
+                scheduleData:{}
+
+            },
+            created: function (){
+
+                // var map = api.require('bMap'); //获取当前经纬度，用于签到任务
+
+                // map.getLocation({}, function (ret,err){
+                //     this.lon = ret.lon;
+                //     this.lat = ret.lat;
+
+                //     if(ret.status){
+
+                //         map.stopLocation();
+
+                //     }
+
+                // }.bind(this))
+                this.userIsTasker = localStorage.getItem('UserIsTasker');
+                this.userType = localStorage.getItem('UserLoginTypeID');
+                this.getTaskCheckInfo();
+
+            },
+            mounted: function (){
+                this.UserTypeName = localStorage.UserTypeName;
+
+                d_addEventListener('refresh',function(data){
+                    this.getTaskCheckInfo();
+                }.bind(this));
+            },
+            methods:{
+
+                openInspect: function (type,auditMan){
+
+                    // type 等于 3 时 是查看指令详情
+
+                    if(this.UserTypeName=='质检部门'){
+                        openWin('instruct_info_win','./../../2User_inspect/instruct/instruct_info/instruct_info_win.html',{instructId:this.taskCheckInfo.CommandID,CommandStatus: this.taskCheckInfo.CommandStatus });
+                        return;
+                    }
+
+                    if(type==3 || auditMan > 0){
+                        openWin('instruct_info_win','./../../2User_inspect/instruct/instruct_info/instruct_info_win.html',{instructId:this.taskCheckInfo.CommandID,CommandStatus: this.taskCheckInfo.CommandStatus });
+                    }else{
+
+                        // if(this.taskCheckInfo.CommandID==0){
+                        //     setTimeout(function(){
+                        //         d_sendEventExtra('chooseTask',{ items: JSON.stringify(Array(this.taskCheckInfo))});
+                        //     }.bind(this),800);
+                        // }
+
+                        openWin('tasks_instruct_win','./../../2User_inspect/1Tab/add_instruct/tasks_instruct_win.html',{taskId:this.taskCheckInfo.CommandID,taskIdx:taskId, companyUseID:this.taskCheckInfo.CompanyUseID,companyUseName:this.taskCheckInfo.CompanyUseName,companyUseFullAddress:this.taskCheckInfo.CompanyUseFullAddress });
+                    }
+
+                },
+
+                initPhotos: function (photosList){
+
+                    if(photosList.CheckResultCmdListPath.length>0){
+                        var photo = photosList.CheckResultCmdListPath;
+                        var photos = [];
+                        for(var i=0; i<photo.length; i++){
+                            var urlImg = (photo[i].url.indexOf('http://')>-1?photo[i].url:(base_url_photo+photo[i].url));
+                            photos.push({name: photo[i].name, photoUrl: urlImg, photoUrl1: urlImg, status: 2});
+                        };
+                        this.taskCheckInfo.CheckResultCmdList = photos;
+
+                    }
+
+                    if(photosList.CheckResultPhotoListPath.length>0){
+                        var photo = photosList.CheckResultPhotoListPath;
+                        var photos = [];
+                        for(var i=0; i<photo.length; i++){
+                            var urlImg = (photo[i].url.indexOf('http://')>-1?photo[i].url:(base_url_photo+photo[i].url));
+                            photos.push({name: photo[i].name, photoUrl: urlImg, photoUrl1: urlImg, status: 2});
+                        };
+                        this.taskCheckInfo.CheckResultPhotoList = photos;
+
+                    }
+
+                },
+                openExamine: function (){
+                    this.examineValue = true;
+                },
+
+                getTaskCheckInfo: function (){
+
+                    showLoader();
+                    //http://app-lift2.subei88.com:8080/api/Device/TaskCheckInfo/4
+                    apiAjax({url:"Device/TaskCheckInfo/"+taskId,type:'post',param:{}},function(data){
+                        hideLoader();
+
+                        data.CheckResultEndDate = this.filterTime(data.CheckResultEndDate);
+                        data.CheckResultDate = this.filterTime(data.CheckResultDate);
+                        data.CheckChangedEndDate = this.filterTime(data.CheckChangedEndDate);
+
+                        this.taskCheckInfo = data;
+                        this.scheduleData = data;
+                        this.trackList.push(data);
+                        if(data.DeviceID){
+                            this.getDeviceInfo(data.DeviceID);
+                        }
+                        console.log('这是我要的检查任务详情数据'+JSON.stringify(data));
+                        this.initPhotos(data);
+                        // console.log(`我是想请里面的图片链接字段${this.taskCheckInfo.CheckResultPhotoList}`)
+                    }.bind(this));
+
+                },
+
+                getDeviceInfo: function (deviceId){
+                    apiAjax({url:"Device/Device/" + deviceId,type:'post',param:{}},function(data,total){
+                        this.deviceInfo = data;
+                        this.scheduleData.DeviceOldStatus = data.DeviceStatus;
+                        this.scheduleData.DeviceNewStatus = data.DeviceStatus;
+
+                        console.log('任务提交页面的详情数据'+JSON.stringify(data))
+                    }.bind(this))
+                },
+
+                openDeviceInfo: function (deviceId) {
+                    openWin('device_info', './../../common/device_info_1_2_3/device_info_win.html', {deviceId: deviceId})
+                },
+
+                openTarckInfo: function (item) {
+                    openWin('feedBack_submit', './../../2User_inspect/1Tab/tasks_submit/feedBack_submit_win.html', {taskId: item.ID});
+                },
+
+                submitTask: function (){
+                    openWin('tasks_submit_win','./../../2User_inspect/1Tab/tasks_submit/tasks_submit_win.html',{taskId: taskId,deviceId:this.taskCheckInfo.DeviceID,taskNo:this.taskCheckInfo.CheckNo})
+                },
+
+                openSchedule: function (){
+                    this.scheduleValue = true;
+                },
+
+
+                submitSchedule: function () {
+
+                    if(!this.scheduleData._TrackingProgress){
+                        toastShow('请输入进度说明！');
+                        return;
+                    }
+
+                    if(!this.scheduleData.DeviceNewStatus){
+                        toastShow('请选择设备新状态！');
+                        return;
+                    }
+
+                    console.log('提交的任务进度' + JSON.stringify(this.scheduleData));
+
+                    subei.alerts('您确认要提交进度吗？', function () {
+
+                        showLoader();
+                        console.log(JSON.stringify(this.taskCheckInfo));
+                        // return;
+                        apiAjax({url:'Device/TaskCheck_SumbitDesc',type:'post',param:this.taskCheckInfo},function(data){
+
+                            hideLoader();
+                            console.log(JSON.stringify(data));
+                            toastShow('提交成功！');
+
+                            d_sendEventExtra("task_schedule_ok",{ status: 7 });
+                            setTimeout(function () { closeWin(); }, 1000);
+
+                        }.bind(this));
+
+                    }.bind(this))
+
+                },
+
+                taskReceive: function (){
+                    subei.alerts('您确认要接收此任务吗？', function () {
+
+                        apiAjax({url:"Device/TaskCheck_Receive?ID=" + taskId,type:'post',param:{}},function(data){
+
+                            toastShow(data,2000);
+
+                            this.getTaskCheckInfo();
+
+                        }.bind(this))
+
+                    }.bind(this))
+                },
+                taskRefuse: function (){
+
+                    console.log('拒绝任务提交的数据'+this.desc);
+
+                    if(!this.desc){
+                        toastShow("原因不能为空！",1000);
+                        return;
+                    }
+
+                    subei.alerts('您确认要拒接此任务吗？', function () {
+
+                        apiAjax({url:"Device/TaskCheck_RefuseReceive?ID="+ taskId +"&desc="+this.desc,type:'post',param:{}},function(data){
+
+                            toastShow(data,2000);
+
+                            this.getTaskCheckInfo();
+
+                            this.refuse = false;
+
+                        }.bind(this))
+
+
+                    }.bind(this));
+                },
+
+                switchRefuse: function (){
+                    this.refuse = (this.refuse == false ? true : false);
+                },
+
+
+
+                taskRegister: function (){
+
+                     subei.alerts('您确认要进行签到吗？', function () {
+
+                        apiAjax({url:"Device/TaskCheck_Sign?ID=" + taskId + "&signLng="+ this.lon + "&signLat=" + this.lat,type:'post',param:{}},function(data){
+
+                            toastShow(data,2000);
+
+                            this.getTaskCheckInfo();
+
+
+                        }.bind(this))
+
+                    }.bind(this))
+
+                },
+
+                endTask: function (){
+
+                     subei.alerts('您确定将此任务‘闭环归档’吗？', function () {
+
+                        apiAjax({url:'Device/TaskCheck_Close?ID='+taskId,type:'post',param:{}},function(data){
+
+                            toastShow(data,2000);
+
+                            this.getTaskCheckInfo();
+
+                        }.bind(this))
+
+                    }.bind(this))
+
+                },
+
+                downloadPDF: function (){
+
+                    var t_data = this;
+
+                    // 访问外部链接
+                        if (api.systemType === "android") {
+                            api.openApp({
+                                androidPkg: 'android.intent.action.VIEW',
+                                mimeType: 'text/html',
+                                 uri:  base_url + 'Agency/TaskCommand/GetTaskCommandPdf?id=' + t_data.taskCheckInfo.CommandID +'&random=' + Math.random(),
+                            }, function(ret, err) {
+
+                            });
+                        } else {
+                            api.openApp({
+                             iosUrl:  base_url + 'Agency/TaskCommand/GetTaskCommandPdf?id=' + t_data.taskCheckInfo.CommandID+'&random=' + Math.random(),
+                            }, function(ret, err) {
+                                if (ret) {
+
+                                }
+                            });
+                        }
+
+                },
+
+                filterTime: function (date){
+                    var dates = '';
+
+                    if(date){
+
+                        var dateIndex = date.indexOf("T");
+
+                        dates = date.substr(0,dateIndex);
+
+                    }else{
+
+                        dates = '暂无'
+
+                    }
+
+                    return dates;
+                },
+
+                imgView: function (index,data){
+
+                    var imgArr = [];
+
+                    if(data == 1){
+
+                        for(var i=0; i<this.taskCheckInfo.CheckResultPhotoList.length; i++){
+
+                            imgArr.push(this.taskCheckInfo.CheckResultPhotoList[i].photoUrl1);
+
+                        }
+
+                    }else if(data == 2){
+
+                        for(var i=0; i<this.taskCheckInfo.CheckResultCmdList.length; i++){
+
+                            imgArr.push(this.taskCheckInfo.CheckResultCmdList[i].photoUrl1);
+
+                        }
+
+                    }
+
+                    subei.imgPreview(index,imgArr);
+                }
+
+            },
+            watch:{
+
+                scheduleResult: function (){
+                    switch(this.scheduleResult){
+                        case '提交跟踪进度说明' :
+                            this.scheduleData._CheckStatusTarget = 0;
+                            break;
+                        case '闭环归档' :
+                            this.scheduleData._CheckStatusTarget = 1;
+                            break;
+                    }
+                }
+
+            }
+
+        })
+    } )
+</script>
+</html>

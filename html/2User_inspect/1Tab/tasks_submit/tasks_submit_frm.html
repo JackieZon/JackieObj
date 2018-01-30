@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        body { background: #f5f5f5; height: 100%; }
+        img { width: 16px; height: 16px; padding-right: 10px; }
+        input[type=checkbox] { width: 20px; height: 20px; }
+        #app{box-sizing: border-box;padding-bottom: 70px;}
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+            #app .record .record_list .record_content { display: flex; justify-content: space-between;}
+            #app .record .record_list p { font-size: 14px; line-height: 30px; display: flex; align-items: center; }
+            #app .task_info { margin-top: 10px; }
+            #app .regulations { margin-top: 10px; }
+        
+            #app .task_info .title{ padding-left: 10px; font-size: 12px; color: #888; }
+            #app .task_info .img_right { width: 15px; height: 15px; }
+        
+        #app .task_info .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d9d9d9; padding: 10px;  background: white; border-top: 1px solid #d9d9d9;}
+        #app .task_info textarea{ resize: none; height: 80px; font-size: 15px; }
+        #app .regulations textarea{ resize: none; height: 140px; font-size: 15px; }
+            #app .task_info .maintenance_data p { width:80px; margin-right: 15px; }
+            #app .task_info .maintenance_data .image {position: relative; width: 80px; height: 80px; margin: 5px; display: flex;justify-content: center;align-items: center; color: #26a2ff; }
+            #app .task_info .maintenance_data .image .deleteImg{position: absolute;top: 2px;right: 2px;color: red;background: rgba(255,255,255,0.65);border-radius: 5px;display: flex;justify-content: flex-end;align-items: center;}
+            #app .task_info .maintenance_data .image.add{border: 1px solid #f1f1f1;}
+        #app .task_info .maintenance_data .image img{ width: 100%; height: 100%; padding: 0; }
+
+        #app .footer .save { width: 49.2%; background: rgb(76, 175, 80); }
+        #app .footer .submit { width: 49.2%; }
+
+        #app .mint-popup { width: 100%; }
+        #app .mint-popup textarea{ resize: none; height: 80px; font-size: 15px; }
+        #app .select .mint-cell-wrapper { background: #ffffff; }
+        #app .select .mint-field.is-textarea .mint-cell-title { padding: 10px 0 10px 15px; }
+
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div>
+            <ul class="record">
+                <li class="record_list" @click="openDeviceInfo">
+                    <p><img src="./../../../../image/registered.svg" alt="">设备注册码 : <span>&nbsp;{{ deviceInfo.DeviceRegNo | s_toStr }}</span></p>
+                    <p><img src="./../../../../image/no.svg" alt="">证书编号 : <span>&nbsp;{{ deviceInfo.DeviceNo | s_toStr }}</span></p>
+                    <div class="record_content">
+                        <p><img src="./../../../../image/deviceName.svg" alt="">设备名称 : <span>&nbsp;{{ deviceInfo.DeviceName | s_toStr }}</span></p>
+                        <img src="./../../../../image/arrow.svg" alt="">
+                    </div>
+                    <p><img src="./../../../../image/numbering.svg" alt="">出厂编号 : <span>&nbsp;{{ deviceInfo.DeviceProduceNo | s_toStr }}</span></p>
+                    <div class="record_content">
+                        <p><img src="./../../../../image/type.svg" alt="">设备种类 : <span>&nbsp;{{ deviceInfo.DeviceTypeName1+'-'+deviceInfo.DeviceTypeName2 | s_toStr }}</span></p>
+                        <p>状态 : <span>&nbsp;{{ deviceInfo.DeviceStatusName | s_toStr }}</span></p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="task_info">
+            <p class="title">处理措施</p>
+            <mt-radio v-model="postTaskData.CheckResulTreatment" :options="['下达指令书', '直接封查','无需处理']" @change="changeMeasures(postTaskData.CheckResulTreatment)"></mt-radio>
+        </div>
+
+        <div class="regulations">
+            <mt-field v-model="postTaskData.CheckResultIntro" placeholder="请输入问题描述" type="textarea" rows="7"></mt-field> 
+        </div>
+        
+        <div class="task_info">
+            <div class="maintenance_data">
+                <p>现场图片</p>
+                <div class="image" v-if="checkResultPhotos.length!==0" v-for="(item,index) in checkResultPhotos">
+                    <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                    <div class="deleteImg" @click="deleteImg(checkResultPhotos,index)" :height="20" :width="20">
+                        <Icon :name="'icon-close'"></Icon>
+                    </div>
+                </div>
+                <div class="image add" @click="chooseCheckResultPhotos()" v-if="(checkResultPhotos.length!==2)">
+                    <Icon :name="'icon-add'" :width="50" :height="50"></Icon>
+                </div>
+            </div>
+        </div>
+        <div class="footer" v-cloak>
+            <mt-button type="primary" v-if="postTaskData.CheckStatus == 2 || postTaskData.CheckStatus == 5" @click="postTaskCheckInfoEdit(4)" >提交</mt-button>
+            <!-- <mt-button type="primary" v-if="" @click="postTaskCheckInfoEdit(4)" >提交</mt-button> -->
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+        
+        var taskId = subei.getParam('taskId');
+        var deviceId = subei.getParam('deviceId');
+        var taskNo = subei.getParam('taskNo');
+
+        var app = new Vue({
+            el: "#app",
+            data: {
+                deviceInfo:{},
+                measures:'',
+                checkResultPhotos: [],
+                checkResultCmdList: [],
+                postTaskData:{},
+            },
+
+            mounted: function () {
+
+                this.getDeviceInfo();
+                this.getTaskCheckInfo();
+
+            },
+
+            computed: {
+                checkResultPhotosStr: function () {
+
+                    var imgs = [];
+                    for (var item in this.checkResultPhotos) {
+                        if (this.checkResultPhotos[item].name) {
+                            imgs.push(this.checkResultPhotos[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+                },
+
+                checkResultCmdListStr: function () {
+
+                    var imgs = [];
+                    for (var item in this.checkResultCmdList) {
+                        if (this.checkResultCmdList[item].name) {
+                            imgs.push(this.checkResultCmdList[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+                }
+            },
+            methods: {
+
+                initPhotos: function (photosList){
+
+                   
+                    if(photosList.CheckResultCmdListPath.length>0){
+                        var photo = photosList.CheckResultCmdListPath;
+                        var photos = [];
+                        for(var i=0; i<photo.length; i++){
+                            var urlImg = (photo[i].url.indexOf('http://')>-1?photo[i].url:(base_url_photo+photo[i].url));
+                            photos.push({name: photo[i].name, photoUrl: urlImg, photoUrl1: urlImg, status: 2});
+                        };
+                        this.checkResultCmdList = photos;
+
+                    }
+
+                    if(photosList.CheckResultPhotoListPath.length>0){
+                        var photo = photosList.CheckResultPhotoListPath;
+                        var photos = [];
+                        for(var i=0; i<photo.length; i++){
+                            var urlImg = (photo[i].url.indexOf('http://')>-1?photo[i].url:(base_url_photo+photo[i].url));
+                            photos.push({name: photo[i].name, photoUrl: urlImg, photoUrl1: urlImg, status: 2});
+                        };
+                        this.checkResultPhotos = photos;
+
+                    }
+
+                },
+
+                changeMeasures: function (res){
+                    switch(res){
+
+                        case '下达责令书' :
+                            this.postTaskData.CheckResulTreatmentID = 0;
+                            break;  
+
+                        case '无需处理' :
+                            this.postTaskData.CheckResulTreatmentID = 1;
+                            break;  
+
+                        case '直接封查' :
+                            this.postTaskData.CheckResulTreatmentID = 2;
+                            break;  
+
+                    }
+                   
+                },
+
+                openPicker: function () {
+                    this.$refs.picker.open();
+                },
+
+                changeDeadline: function () {
+                    this.$refs.deadline.open();
+                },
+
+                chooseCheckResultPhotos: function () {
+
+                    // subei.upFile(this.checkResultPhotos, 2, 'CheckResult', function(res){
+                    subei.upFile(this.checkResultPhotos, 2, 'CheckResult', function(res){
+
+                        this.checkResultPhotos = res;
+                        console.log(JSON.stringify( res));
+
+                    }.bind(this));
+
+                },
+
+                chooseCheckResultCmdList: function () {
+
+                    // subei.upFile(this.checkResultCmdList, 2, 'CheckResultCmd', function(res){
+                    subei.upFile(this.checkResultCmdList, 2, 'CheckResultCmd', function(res){
+                        this.checkResultCmdList = res;
+                        console.log(JSON.stringify( res));
+
+                    }.bind(this));
+
+                },
+
+                deleteImg: function (photosList,i) {
+
+                    subei.alerts('您确认要删除吗', function () {
+                        photosList.splice(i, 1);
+                    }.bind(this));
+
+                },
+
+                getTaskCheckInfo: function (){
+                    var date = new Date("2000-01-01");
+
+                    showLoader();
+                    //http://app-lift2.subei88.com:8080/api/Device/TaskCheckInfo/4
+                    apiAjax({url:"Device/TaskCheckInfo/" + taskId,type:'post',param:{}},function(data){
+                        hideLoader();
+                        this.postTaskData = data;
+
+                        if(this.postTaskData.CheckResulTreatment == ''){
+                            this.postTaskData.CheckResulTreatment = '下达指令书';
+                            this.postTaskData.CheckResulTreatmentID = 0;
+                        }
+
+                        if(new Date(this.postTaskData.CheckResultDate) < date){
+                            this.postTaskData.CheckResultDate = "";
+                        }
+
+                        if(new Date(this.postTaskData.CheckChangedEndDate) < date){
+                            this.postTaskData.CheckChangedEndDate = "";
+                        }
+
+
+                        this.initPhotos(data)
+                        console.log('这是请求回来的任务详情'+JSON.stringify(data));     
+                    }.bind(this));
+
+                },
+
+                //http://app-lift2.subei88.com:8080/api/Device/Device/1
+                getDeviceInfo: function (){
+                    apiAjax({url:"Device/Device/" + deviceId,type:'post',param:{}},function(data,total){
+                        this.deviceInfo = data;
+                        // console.log('任务提交页面的详情数据'+JSON.stringify(data))
+                    }.bind(this))
+                },
+
+                openDeviceInfo: function () {
+                    openWin('device_info', './../../../common/device_info_1_2_3/device_info_win.html', {deviceId: deviceId})
+                },
+                postTaskCheckInfoEdit: function (status){
+
+                    this.postTaskData.CheckResultPhotoList = this.checkResultPhotosStr;
+                    this.postTaskData.CheckResultCmdList = this.checkResultCmdListStr;
+
+                    if(status == 4){
+
+                        var limitTime = new Date("2000-01-01");
+
+                        if(!this.postTaskData.CheckResultIntro){
+                            toastShow('请填写隐患描述！',2000);
+                            return;
+                        }
+
+                        if(!this.postTaskData.CheckResultPhotoList){
+                            toastShow('请提交现场图片！',2000);
+                            return;
+                        }
+                    }
+
+                    var postTaskData = subei.deepCoyp(this.postTaskData);
+                    var commandID = this.postTaskData.CommandID
+                    postTaskData.CheckStatus = status;
+
+                    console.log(JSON.stringify(postTaskData));
+
+                    subei.alerts('您确认要提交吗？', function () {
+
+                        showLoader();
+                        apiAjax({url:'Device/TaskCheckInfoEdit',type:'post',param:postTaskData},function (data){
+
+                            hideLoader();
+                            toastShow('提交成功！',2000);
+
+                            if(this.postTaskData.CheckResulTreatment == '下达指令书'){
+
+                                var items = [];
+                                items.push(postTaskData);
+                                if(postTaskData.CommandID==0){
+                                    setTimeout(function(){
+                                        d_sendEventExtra('chooseTask',{ items: JSON.stringify(items) });
+                                        closeWin();
+                                        d_sendEventExtra('refresh');
+                                    },800);
+                                }
+                                openWin('tasks_instruct_win','./../add_instruct/tasks_instruct_win.html',{taskId: this.postTaskData.CommandID, taskIdx: taskId, companyUseID:this.postTaskData.CompanyUseID,companyUseName:this.postTaskData.CompanyUseName,companyUseFullAddress:this.postTaskData.CompanyUseFullAddress });
+                            }else{
+                                d_sendEventExtra("refresh",{ status: 'A1' });
+                                // setTimeout(function () { closeWin('inspect_info'); }, 1000);
+                                setTimeout(function () { closeWin(); }, 1500);
+                            }
+
+                        }.bind(this));
+
+                    }.bind(this));
+                }
+
+            }
+        })
+    })
+
+</script>
+
+</html>

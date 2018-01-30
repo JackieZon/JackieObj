@@ -1,0 +1,144 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" href="./../../css/base.css" />
+    <link rel="stylesheet" href="./../../css/mint/style.css">
+    <style type="text/css"></style>
+    <title></title>
+    <style>
+        #app{
+            height: 100%;
+        }
+        #app .mint-search{
+            height: auto;
+        }
+        #app .mint-navbar .mint-tab-item.is-selected{
+            margin-bottom: 0px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" ref="app" v-cloak>
+        <div class="header" ref="header" id="header">
+            <mt-header :title="tabText[selected]"></mt-header>
+            <mt-search
+                v-if="selected==1"
+                v-model="search"
+                cancel-text="取消"
+                placeholder="搜索">
+            </mt-search>
+            <mt-navbar v-model="pendingState" v-if="selected==0">
+                <mt-tab-item id="1">待处理</mt-tab-item>
+                <mt-tab-item id="2">待审核</mt-tab-item>
+                <mt-tab-item id="4">审核通过</mt-tab-item>
+                <mt-tab-item id="3">审核退回</mt-tab-item>
+            </mt-navbar>
+        </div>
+        <mt-tabbar v-model="selected" fixed id="footer">
+            <mt-tab-item id="0">
+                <Icon slot="icon" :name="'icon-remind'"></Icon>
+                {{tabText[0]}}
+            </mt-tab-item>
+            <mt-tab-item id="1">
+                <Icon slot="icon" :name="'icon-form'"></Icon>
+                {{tabText[1]}}
+            </mt-tab-item>
+            <mt-tab-item id="2">
+                <Icon slot="icon" :name="'icon-friend'"></Icon>
+                {{tabText[2]}}
+            </mt-tab-item>
+        </mt-tabbar>
+    </div>
+    <script src="./../../script/api.js"></script>
+    <script src="./../../script/base.js"></script>
+    <script src="./../../script/device.js"></script>
+    <script src="./../../script/axios.js"></script>
+    <script src="./../../script/vue/vue.js"></script>
+    <script src="./../../script/mint/index.js"></script>
+    <script src="./../../icon/icon/iconfont.js"></script>
+    <script type="text/javascript">
+
+        subei.ready(function () {
+            new Vue({
+                el: '#app',
+                data: {
+                    selected: '0',
+                    tabText: ['待处理', '设备查询', '我的'],
+                    search:'',
+                    tenanceState:'2',
+                    pendingState:'1'
+                },
+                watch: {
+                    selected: function (val,vals) {
+                        showLoader();
+                        api.setFrameGroupIndex({ name: 'indexGroup', index: Number(val) });
+                    },
+                    tenanceState: function (val,vals){
+                        console.log('Tab状态||'+val);
+                        execJs('index','2Tab','changeTab('+val+')');
+                    },
+                    pendingState: function (val,vals){
+                        console.log('Tab状态||'+val);
+                        execJs('index','1Tab','changeTab('+val+')');
+                    }
+                },
+                mounted: function () {
+                    // return;
+                    //退出app
+                    // sb_appExit();
+                    
+                    var header = this.$refs.header;
+                    var footer = document.getElementById('footer').offsetHeight;
+
+                    $api.fixStatusBar(header);
+
+                    var header_h = $api.offset(header).h;
+                    var winHeight = this.$refs.app.offsetHeight;
+
+                    watchWindowSize('frameGroup','indexGroup');
+
+                    api.openFrameGroup({
+                        name: 'indexGroup',
+                        scrollEnabled: false,
+                        rect: {
+                            x: 0,
+                            y: header_h,
+                            w: 'auto',
+                            h: winHeight - header_h - footer
+                        },
+                        index: 0,
+                        frames: [{
+                            name: '1Tab',
+                            url: '1Tab/index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: true
+                        }, {
+                            name: '2Tab',
+                            url: '2Tab/index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: true
+                        }, {
+                            name: '3Tab',
+                            url: './../common/my_index.html',
+                            vScrollBarEnabled: false,
+                            hScrollBarEnabled: false,
+                            bounces: false
+                        }]
+                    }, function (ret, err) {
+                        hideLoader();
+                        refreshWindow('frameGroup','indexGroup');
+                    });
+                },
+
+            });
+        });
+    </script>
+</body>
+
+</html>

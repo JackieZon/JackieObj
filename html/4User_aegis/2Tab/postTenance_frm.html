@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="https://unpkg.com/mint-ui/lib/style.css">
+    <style>
+        body { background: #f5f5f5; height: 100%; }
+        img { width: 25px; height: 25px; padding-right: 10px; }
+        input[type=checkbox] { width: 20px; height: 20px; }
+        #app{box-sizing: border-box;padding-bottom: 65px;}
+        #app .mint-tab-container{ padding-top: 50px; }
+        #app .device_info{ padding-top: 10px; background: #f5f5f5; }
+            #app .device_info textarea{ resize: none; }
+            #app .device_info .company_title{ background: #fff; text-align: center; }
+                #app .device_info .company_title p{ line-height: 45px; color: #26a2ff; font-size: 17px; border-top: 1px solid #d9d9d9; }
+            #app .but{ position: fixed; left: 0; bottom: 0; box-sizing: border-box; width: 100%; padding: 10px 15px; background: rgba(255, 255, 255, 0.75); }
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+            #app .record .record_list .record_content { display: flex; justify-content: space-between;}
+            #app .record .record_list p { font-size: 14px; line-height: 35px; display: flex; align-items: center; }
+        #app .table { background: white; padding: 0px 10px 10px; }
+            #app .table table { width: 100%; }
+                #app .table table tr { height: 40px; }
+                    #app .table table tr th { width: 25%; background: #26a2ff; border:1px solid #26a2ff; color: white; }
+                    #app .table table tr td { width: 25%; text-align: center; border:1px solid #26a2ff; font-size: 14px; }
+        #app .device_info .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d9d9d9; padding: 10px;  background: white; border-top: 1px solid #d9d9d9; }
+            #app .device_info .maintenance_data p { width:80px; margin-right: 15px; }
+            #app .device_info .maintenance_data .image {position: relative; width: 80px; height: 80px; margin: 5px; display: flex;justify-content: center;align-items: center; color: #26a2ff; }
+            #app .device_info .maintenance_data .image .deleteImg{position: absolute;top: 2px;right: 2px;color: red;background: rgba(255,255,255,0.65);border-radius: 5px;display: flex;justify-content: flex-end;align-items: center;}
+            #app .device_info .maintenance_data .image.add{border: 1px solid #f1f1f1;}
+            #app .device_info .maintenance_data .image img{ width: 100%; height: 100%; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div class="device_info">
+            <mt-field label="维保情况" placeholder="请输入维保情况" v-model="defaultData.TenanceRemark"></mt-field>
+            <div class="maintenance_data">
+                <p>维保资料</p>
+                <div class="image" v-if="TenancePhotos.length!==0" v-for="(item,index) in TenancePhotos" >
+                    <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                    <div class="deleteImg" @click="deleteImg(index)" :height="20" :width="20"><Icon :name="'icon-close'" :width="20" :height="20"></Icon></div>
+                </div>
+                <div class="image add" @click="chooseTenancePhotos()" v-if="(TenancePhotos.length<2)">
+                    <Icon :name="'icon-add'" :width="50" :height="50"></Icon>
+                </div>
+            </div>
+            <mt-field label="备注" placeholder="请输入备注" v-model="defaultData.TenanceIntro"></mt-field>
+            <mt-field label="下次维保时间" disabled><span style="color: red;">{{defaultData.TenanceAddDate|s_toDate}}</span></mt-field>
+            <mt-cell title="维保项目"></mt-cell>
+            <div class="table">
+                <table>
+                    <tr>
+                        <th>维保项目</th>
+                        <th>维保内容</th>
+                        <th>完成</th>
+                    </tr>
+                    <tr v-for="item in defaultData.ListTaskTenanceDetail">
+                        <td>{{item.TenanceItemName}}</td>
+                        <td>{{item.TenanceItemIntro}}</td>
+                        <td><input type="checkbox" v-model="item.TenanceItemStatus"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <!-- <div class="table" style="display:none">
+            <table>
+                <tr>
+                    <th>处理时间</th>
+                    <th>处理动作</th>
+                    <th>备注</th>
+                </tr>
+                <tr>
+                    <td>2017-01-01</td>
+                    <td>拒绝</td>
+                    <td>引擎出问题</td>
+                </tr>
+            </table>
+        </div> -->
+        <div class="but">
+            <mt-button type="primary" @click="TaskTenanceInfoEdit" size="large">提交</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="https://unpkg.com/mint-ui/lib/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script>
+    subei.ready(function(){
+        var app = new Vue({
+            el:"#app",
+            data:{
+                TenancePhotos:[],
+                defaultData:{}
+            },
+            created: function (){
+                showLoader();
+                this.defaultData = subei.getParam('defaultData');
+                console.log('我是默认数据');
+                console.log(JSON.stringify(this.defaultData));
+
+                this.defaultData.TenanceStatus = 2;
+                if(this.defaultData.ListTaskTenanceDetail.length!==0){
+                    this.defaultData.ListTaskTenanceDetail = this.defaultData.ListTaskTenanceDetail.map(function(i){
+                        if(i.TenanceItemStatus==1){
+                            i.TenanceItemStatus = false;
+                        }else if(i.TenanceItemStatus==2){
+                            i.TenanceItemStatus = true;
+                        }
+                        return i;
+                    });
+                }
+
+                if(typeof(this.defaultData.TenancePhotos)=='string'){
+                    var imgs = this.defaultData.TenancePhotos.split(',');
+                    for(var j in imgs){
+                        this.TenancePhotos.push({photoUrl1: (imgs[j].indexOf('http://')>-1?imgs[j]:base_url_photo+imgs[j]),status:2});
+                    }
+                }
+                hideLoader();
+            },
+            mounted: function (){},
+            computed:{
+                tenancePhotosStr: function(){
+                    
+                    var imgs = [];
+                    for(var item in this.TenancePhotos){
+                        if(this.TenancePhotos[item].name){
+                            imgs.push(this.TenancePhotos[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+                }
+            },
+            methods:{
+                chooseTenancePhotos: function(){
+
+                    var t_data = this;
+
+                    subei.upFile(this.TenancePhotos, 2, 'CheckResult', function(res){
+
+                        this.TenancePhotos = res;
+                        console.log(JSON.stringify(res));
+
+                    }.bind(this));
+
+                },
+                deleteImg: function (i){
+
+                    subei.alerts('您确认要删除吗',function(){
+                        this.TenancePhotos.splice(i,1);
+                    }.bind(this));
+
+                },
+                TaskTenanceInfoEdit: function (){
+
+                    // http://app-lift2.subei88.com:8080/api/Device/TaskTenanceInfoEdit
+                    if(!this.defaultData.TenanceRemark){
+                        toastShow('请填写维保情况');
+                        return;
+                    }
+
+                    if(this.TenancePhotos.length==0){
+                        toastShow('请上传维保情况图片');
+                        return;
+                    }
+                    
+                    if(!this.defaultData.TenanceIntro){
+                        toastShow('请填写维保情况');
+                        return;
+                    }
+
+                    this.defaultData.TenancePhotos = this.tenancePhotosStr;
+
+                    var defaultData = subei.deepCoyp(this.defaultData);
+
+                    defaultData.ListTaskTenanceDetail.map(function(i){
+                        if(i.TenanceItemStatus==true){
+                            i.TenanceItemStatus = 2;
+                        }else if(i.TenanceItemStatus==false){
+                            i.TenanceItemStatus = 1;
+                        }
+                        return i;
+                    });
+
+                    console.log(JSON.stringify(defaultData));
+                    
+                    showLoader('提交中...');
+
+                    apiAjax({url:'Device/TaskTenanceInfoEdit',type:'post',param:defaultData},function(data){
+                        
+                        hideLoader();
+                        toastShow('提交成功！',2000);
+                        d_sendEvent('taskTenance');
+                        setTimeout(function() {
+                            closeWin();
+                        }, 2000);
+
+                    });
+
+                }
+
+            }
+        })
+    })
+</script>
+</html>

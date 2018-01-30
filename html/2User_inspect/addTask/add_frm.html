@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <link rel="stylesheet" href="./../../../css/addTask/addTask.css">
+    <script src="./../../../script/rem.js"></script>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+
+        <div class="company" v-cloak>
+            <ul class="record">
+                <li class="record_list">
+                    <div class="titles">
+                        <p style="font-size: 16px;">使用单位</p>
+                        <div class="choose" @click="openMember">{{(postData.TaskCompanyID==0?'选择':'清除')}}</div>
+                    </div>
+                    <mt-field label="使用单位" :readonly="(postData.TaskCompanyID==0?false:true)" v-model="postData.TaskCompanyName" placeholder="请输入使用单位"></mt-field>
+                </li>
+            </ul>
+        </div>
+
+        <div v-cloak>
+            <ul class="record">
+                <li class="record_list">
+                    <div class="titles">
+                        <p style="font-size: 16px;">设备信息</p>
+                        <div class="choose" @click="openDevice">{{(postData.TaskDeviceID==0?'选择':'清除')}}</div>
+                    </div>
+                    <mt-field label="设备名称" v-model="postData.TaskDeviceName" :readonly="(postData.TaskDeviceID==0?false:true)" placeholder="请输入设备名称"></mt-field>
+                    <mt-field label="证书编号" v-model="postData.TaskDeviceCertNo" :readonly="(postData.TaskDeviceID==0?false:true)" placeholder="请输入证书编号"></mt-field>
+                    <mt-field label="设备型号" v-model="postData.TaskDeviceModel" :readonly="(postData.TaskDeviceID==0?false:true)" placeholder="请输入设备型号"></mt-field>
+                    <mt-field label="额定出力(t/h)" v-model="postData.TaskDeviceRating" placeholder="请输入额定出力"></mt-field>
+                    <mt-field label="原燃料种类" disabled>
+                        <select v-model="rawFuels" style="width: 100px; background: white; border: 0px;">
+                            <option v-if="rawFuels == '0'" :value="0">请选择</option>
+                            <option v-for="item in rawFuelList" v-bind:value="item.id">
+                                {{ item.name }}
+                            </option>
+                        </select>
+                    </mt-field>
+                    <mt-field label="使用状态" disabled>
+                        <select v-model="deviceStatus" style="width: 100px; background: white; border: 0px;">
+                            <option v-for="item in ListTaskDeviceStatus" v-bind:value="item.value">
+                                {{ item.label }}
+                            </option>
+                        </select>
+                    </mt-field>
+                    
+                </li>
+            </ul>
+        </div>
+        
+        <div v-cloak>
+            <ul class="record">
+                <li class="record_list">
+                    <div class="titles">
+                        <p style="font-size: 16px;">任务信息</p>
+                    </div>
+                    <mt-field label="是否合格" disabled>
+                        <select style="width: 100px; background: white; border: 0px;" v-model="whether">
+                            <option v-for="item in whetherList" v-bind:value="item.id">
+                                {{ item.name }}
+                            </option>
+                        </select>
+                    </mt-field>
+                    <div v-if="whether==2">
+                        <mt-field label="处理方式" disabled>
+                            <select style="width: 100px; background: white; border: 0px;" v-model="method">
+                                <option v-if="method == '0'" :value="0">请选择</option>
+                                <option v-for="item in methodList" v-bind:value="item.id">
+                                    {{ item.name }}
+                                </option>
+                            </select>
+                        </mt-field>
+                        <mt-field label="罚款金额" v-model="postData.TaskCheckSum" placeholder="请输入"></mt-field>
+                        <mt-field label="扣除诚信分数" v-model="postData.TaskCheckPoint" placeholder="请输入"></mt-field>
+                    </div>
+
+                    <div class="inspect_content">
+                        <div class="maintenance_data">
+                            <p>现场图片</p>
+                            <div class="image" v-if="checkResultPhotos.length!==0" v-for="(item,index) in checkResultPhotos">
+                                <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../icon/img/no-img.png'" alt="暂无">
+                                <div class="deleteImg" @click="deleteImg(checkResultPhotos,index)" :height="20" :width="20">
+                                    <Icon :name="'icon-close'"></Icon>
+                                </div>
+                            </div>
+                            <div class="image add" @click="chooseCheckResultPhotos()" v-if="(checkResultPhotos.length!==2)">
+                                <Icon :name="'icon-add'" :width="50" :height="50"></Icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="inspect_content">
+                        <mt-field label="存在问题" v-model="postData.TaskCheckProblemIntro" placeholder="请输入存在问题" type="textarea" rows="4" ></mt-field>
+                    </div>
+                    
+                    <div class="inspect_content">
+                        <mt-field label="整改措施" v-model="postData.TaskCheckChangedInfo" placeholder="请输入整改措施" type="textarea" rows="4" ></mt-field>
+                    </div>
+                    <div class="inspect_content">
+                        <mt-field label="备注" v-model="postData.TaskCheckRemark" placeholder="请输入反馈说明" type="textarea" rows="4" ></mt-field>
+                    </div>
+                    
+                    <mt-field  type="date"  v-model="postData.TaskCheckDate" label="任务检查日期" placeholder="请选择检查日期"></mt-field>
+                    
+                    <mt-field  type="date" v-model="postData.TaskCheckChangedEndDate" label="整改截止日期" placeholder="请选择截止日期"></mt-field>
+
+                </li>
+            </ul>
+        </div>
+        <div class="but">
+            <mt-button type="primary" size="large" @click="postTaskCheckSumbit">提交</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script src="./../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+
+        var date = new Date();
+        var addDate = date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate();
+
+        new Vue({
+            el: "#app",
+            data: {
+                rawFuels: 0,
+                rawFuelList:[
+                    {id: 1, name: '柴油'},
+                    {id: 2, name: '木质边角料'},
+                    {id: 3, name: '燃煤'},
+                    {id: 4, name: '生物质'},
+                    {id: 5, name: '水煤浆'},
+                    {id: 6, name: '烟煤'},
+                    {id: 7, name: '重油'},
+                    {id: 8, name: '其他'},
+                ],
+                whether: 1,
+                whetherList: [
+                    {id: 1, name: '是'},
+                    {id: 2, name: '否'}
+                ],
+                method: 0,
+                methodList: [
+                    {id: 1, name: '整改'},
+                    {id: 2, name: '限停产'},
+                    {id: 3, name: '罚款'}
+                ],
+                deviceStatus: 0,
+                ListTaskDeviceStatus:[{"label":"未知","value":0},{"label":"在用","value":1},{"label":"停用","value":2},{"label":"检测中","value":3},{"label":"整改中","value":4},{"label":"停电话","value":51},{"label":"停目录停用","value":52},{"label":"停检验员","value":54},{"label":"停","value":55},{"label":"拆除","value":6},{"label":"注销","value":7},{"label":"已移装改造","value":8},{"label":"简单容器","value":9},{"label":"待核实","value":10}],
+                checkResultPhotos: [],
+                postData:{
+                    "TaskCheckPhotoListPath": [],
+                    "ID": 0,
+                    "TaskNo": "",
+                    "TaskAgencyID": 0,
+                    "TaskAgencyName": "",
+                    "TaskCheckDate": "2017-10-20",
+                    "TaskCreateDate": "",
+                    "TaskUpdateDate": "",
+                    "TaskManID": 0,
+                    "TaskManName": "",
+                    "TaskDeptID": 0,
+                    "TaskDeptName": "",
+                    "TaskPollutionType": 0,
+                    "TaskPollutionTypeName": "",
+                    "TaskCompanyID": 0,
+                    "TaskCompanyName": "",
+                    "TaskIntro": "",
+                    "TaskDeviceID": 0,
+                    "TaskDeviceName": "",
+                    "TaskDeviceCertNo": "",
+                    "TaskDeviceModel": "",
+                    "TaskDeviceFuelTypeID": 0,
+                    "TaskDeviceFuelTypeName": "",
+                    "TaskDeviceRating": "",
+                    "TaskDeviceStatus": 0,
+                    "TaskDeviceStatusName": "",
+                    "TaskFunctionID": 0,
+                    "TaskFunctionName": "",
+                    "TaskCheckResults": 0,
+                    "TaskCheckResultsReasonID": 0,
+                    "TaskCheckResultsReasonName": "",
+                    "TaskCheckSum": 0,
+                    "TaskCheckPoint": 0,
+                    "TaskCheckPhotoList": "",
+                    "TaskCheckProblemIntro": "",
+                    "TaskCheckChangedInfo": "",
+                    "TaskCheckChangedEndDate": "",
+                    "TaskCheckRemark": ""
+                  }
+            },
+            watch: {
+                rawFuels: function(val, vals){
+                    console.log(val)
+                    var data = this.rawFuelList.filter(function (i) {
+                        return (i.id == val)
+                    })
+                    console.log(data)
+                    this.postData.TaskDeviceFuelTypeID = data[0].id;
+                    this.postData.TaskDeviceFuelTypeName = data[0].name;
+                },
+                whether: function(val, vals){
+                    var data = this.whetherList.filter(function (i) {
+                        return (i.id == val)
+                    })
+                    console.log(data)
+                    this.postData.TaskCheckResults = data[0].id
+                },
+                method: function(val, vals){
+                    var data = this.methodList.filter(function (i) {
+                        return (i.id == val)
+                    })
+                    console.log(data)
+                    this.postData.TaskCheckResultsReasonID = data[0].id
+                    this.postData.TaskCheckResultsReasonName = data[0].name
+                },
+                deviceStatus: function(val, vals){
+                    var data = this.ListTaskDeviceStatus.filter(function (i) {
+                        return (i.value == val)
+                    })
+                    console.log(data)
+                    this.postData.TaskDeviceStatus = data[0].value
+                    this.postData.TaskDeviceStatusName = data[0].label
+                }
+            },
+            mounted: function () {
+                var t_data = this;
+                var item = subei.getParam('item')
+                console.log('我是编辑的数据')
+                console.log(item)
+                if(item){
+                    t_data.postData = JSON.parse(item)
+                    t_data.rawFuels = t_data.postData.TaskDeviceFuelTypeID
+                    t_data.whether = t_data.postData.TaskCheckResults || 1
+                    t_data.method = t_data.postData.TaskCheckResultsReasonID
+                    t_data.deviceStatus = t_data.postData.TaskDeviceStatus
+
+                    t_data.postData.TaskCheckDate = t_data.postData.TaskCheckDate.split('T')[0]
+                    t_data.postData.TaskCheckChangedEndDate = t_data.postData.TaskCheckChangedEndDate.split('T')[0]
+
+                    // { photoUrl: res[i], photoUrl1: "", status: 1, name:'' }
+                    var imgArr = t_data.postData.TaskCheckPhotoListPath.map(function(i){
+                        return {photoUrl1:(i.url.indexOf('http')>-1?i.url: base_url_photo+i.url), name: i.name, status:2  }
+                    })
+                    console.log('我是图片')
+                    console.log(JSON.stringify(imgArr))
+                    t_data.checkResultPhotos = imgArr;
+
+                }
+                d_addEventListener('member',function(ret){
+                    console.log(JSON.stringify(ret))
+                    t_data.postData.TaskCompanyID = ret.value.id
+                    t_data.postData.TaskCompanyName = ret.value.name
+                })
+
+                d_addEventListener('device',function(ret){
+                    t_data.postData.TaskDeviceName = ret.value.DeviceName
+                    t_data.postData.TaskDeviceID = ret.value.DeviceID
+                    t_data.postData.TaskDeviceCertNo = ret.value.DeviceCertNo
+                    t_data.postData.TaskDeviceModel = ret.value.DeviceModel || '暂无'
+                })
+            },
+            methods: {
+                changeDeadline: function () {
+                    this.$refs.deadline.open();
+                },
+                openMember: function(){
+                    if(this.postData.TaskCompanyID!==0){
+                        this.postData.TaskCompanyID = 0;
+                        this.postData.TaskCompanyName = '';
+                        return
+                    }
+                    openWin('company_list_win','./../chooseMember/company_list_win.html')
+                },
+                openDevice: function(){
+                    var t_data = this;
+                    if(this.postData.TaskDeviceID!==0){
+                        t_data.postData.TaskDeviceName = ''
+                        t_data.postData.TaskDeviceID = 0
+                        t_data.postData.TaskDeviceCertNo = ''
+                        t_data.postData.TaskDeviceModel = ''
+                        return
+                    }
+                    openWin('device_list_win','./../chooseDevice/device_list_win.html')
+                },
+                chooseCheckResultPhotos: function () {
+
+                    // subei.upFile(this.checkResultPhotos, 2, 'CheckResult', function(res){
+                    subei.upFile(this.checkResultPhotos, 2, 'check_no94', function(res){
+
+                        this.checkResultPhotos = res;
+                        console.log(JSON.stringify( res));
+
+                    }.bind(this));
+
+                },
+                deleteImg: function (photosList,i) {
+                    
+                    subei.alerts('您确认要删除吗', function () {
+                        photosList.splice(i, 1);
+                    }.bind(this));
+
+                },
+                getCompanyInfo: function (){
+                    showLoader();
+                    apiAjax({ url: 'CompanyUse/CompanyUse/' + companyId, type: 'post', param:{} }, function (data, total) {
+                       
+                        hideLoader();
+
+                        this.companyInfo = data;
+                        
+                        //使用单位信息
+                        this.postData.CompanyUseName = data.UseName;
+
+                        this.postData.CompanyUseFullAddress = data.UseFullAddress;
+
+                        this.postData.CompanyUseConfirmMan = data.UseContactMan;
+
+                        this.postData.CompanyUseConfirmManPhone = data.UseContactManTel;
+                        
+                        console.log('这是单位详情数据' + JSON.stringify(data))
+
+                    }.bind(this));
+
+                },
+                getDeviceInfo: function (){
+                    apiAjax({url:"Device/Device/" + deviceId,type:'post',param:{}},function(data,total){
+
+                        this.deviceInfo = data;
+
+                        //设备信息
+                        this.postData.DeviceName = data.DeviceName;
+
+                        this.postData.DeviceTypeFullName = data.DeviceTypeFullName;
+
+                        this.postData.DeviceFullAddress  = data.DeviceFullAddress;
+                        
+                        console.log('任务提交页面的设备详情数据'+JSON.stringify(data));
+
+                    }.bind(this))
+                },
+                postTaskCheckSumbit: function (){
+            
+                    if(!this.postData.TaskCompanyName){
+                        toastShow('请选择使用单位！',2000);
+                        return;
+                    }
+                    if(!this.postData.TaskDeviceName){
+                        toastShow('请填写设备名称！',2000);
+                        return;
+                    }
+                    if(!this.postData.TaskDeviceRating){
+                        toastShow('请填写额定出力！',2000);
+                        return;
+                    }
+                    if(this.postData.TaskDeviceFuelTypeID==0){
+                        toastShow('请选择原燃料种类！',2000);
+                        return;
+                    }
+                    if(!this.checkResultPhotosStr){
+                        toastShow('请上传现场图片！',2000);
+                        return;
+                    }
+                    if(!this.postData.TaskCheckProblemIntro){
+                        toastShow('请填写存在问题！',2000);
+                        return;
+                    }
+
+                    if(!this.postData.TaskCheckChangedInfo){
+                        toastShow('请填写整改措施！',2000);
+                        return;
+                    }
+                    
+                    if(!this.postData.TaskCheckDate){
+                        toastShow('请填写任务检查日期！',2000);
+                        return;
+                    }
+
+                    if(!this.postData.TaskCheckChangedEndDate){
+                        toastShow('请填写任务检查日期！',2000);
+                        return;
+                    }
+
+                    this.postData.TaskCheckPhotoList = this.checkResultPhotosStr;
+                    
+                    console.log(JSON.stringify(this.postData));
+
+                    subei.alerts('您确认要提交吗？', function () {
+                        showLoader();
+
+                        // http://app-lift2.subei88.com:8080/api/TaskCheck/TaskCheck_No94Edit
+
+                        apiAjax({url:'TaskCheck/TaskCheck_No94Edit',type:'post',param:this.postData},function(data){
+
+                            hideLoader();
+                            toastShow('提交成功！',2000);
+                            console.log('这是返回的结果'+JSON.stringify(data));
+                            d_sendEvent('refresh')
+                            setTimeout(function () { closeWin(); }, 1500);
+
+                        }.bind(this));
+
+                    }.bind(this));
+                
+                }
+            },
+            computed: {
+                checkResultPhotosStr: function () {
+                    
+                    var imgs = [];
+                    for (var item in this.checkResultPhotos) {
+                        if (this.checkResultPhotos[item].name) {
+                            imgs.push(this.checkResultPhotos[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+                
+                }
+                
+            }
+        })
+    })
+
+</script>
+
+</html>

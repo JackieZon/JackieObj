@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        body { background: white; }
+        #app { background: #f5f5f5;}
+
+        #app .inspect_content { margin-top: 10px; }
+            /* #app textarea{ resize: none; height: 80px; } */
+             #app textarea{ resize: none; height: 0px; padding-top: 22px; padding-bottom: 45px; } 
+        #app .inspect_data { padding-top: 10px; }
+        #app .inspect_content { margin-top: 10px; }
+            #app .inspect_content .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d9d9d9; padding: 10px;  background: white; border-top: 1px solid #d9d9d9;}
+                #app .inspect_content .maintenance_data p { width:80px; margin-right: 15px; }
+                #app .inspect_content .maintenance_data .image {position: relative; width: 80px; height: 80px; margin: 5px; display: flex;justify-content: center;align-items: center; color: #26a2ff; overflow: hidden;}
+                #app .inspect_content .maintenance_data .image .deleteImg{position: absolute;top: 2px;right: 2px;color: red;background: rgba(255,255,255,0.65);border-radius: 5px;display: flex;justify-content: flex-end;align-items: center;}
+                #app .inspect_content .maintenance_data .image.add{border: 1px solid #f1f1f1;}
+                    #app .inspect_content .maintenance_data .image img{ width: 100%; padding: 0; }
+
+        #app .but { display: flex; padding: 5px; background: white; }
+        #app .but button { margin: 5px; }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="inspect_content">
+            <mt-field label="设备名称" v-model="deviceInfo.DeviceName" placeholder = "请输入设备名称"></mt-field>
+            <mt-field label="设备地址" v-model="deviceInfo.DeviceAddress" placeholder = "请输入设备地址"></mt-field>
+        </div>
+        <div class="inspect_content">
+            <mt-cell title="经度和纬度">
+                <div>
+                    <mt-button type="primary" size="small" @click="getLngLat()">地图</mt-button>
+                </div>
+            </mt-cell>
+            <div v-if="deviceAddress.lon">
+                <mt-field label="经度" readonly :value="deviceAddress.lon||'暂无'"></mt-field>
+                <mt-field label="纬度" readonly :value="deviceAddress.lat||'暂无'"></mt-field>
+            </div>
+        </div>
+        <div class="inspect_content">
+            <div class="maintenance_data">
+                <p>设备图片</p>
+                <div class="image" v-if="checkDataPhotos.length!==0" v-for="(item,index) in checkDataPhotos">
+                    <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                    <div class="deleteImg" @click="deleteImg(index)" :height="20" :width="20">
+                        <Icon :name="'icon-close'"></Icon>
+                    </div>
+                </div>
+                <div class="image add" @click="choosecheckDataPhotos()" v-if="(checkDataPhotos.length<6)">
+                    <Icon :name="'icon-add'" :width="50" :height="50"></Icon>
+                </div>
+            </div>
+        </div>
+        <div class="but">
+            <mt-button type="primary" size="large" @click="postDeviceEdit">保存</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+
+        var deviceId = subei.getParam('deviceId');
+
+        window.app = new Vue({
+            el: "#app",
+            data: {
+                deviceAddress:{
+                    lon:'',
+                    lat:'',
+                    address:'',
+                },
+                checkDataPhotos: [],
+                taskInfo:{},
+                deviceInfo:{},
+            },
+            mounted: function () {
+                this.getDeviceInfo();
+            },
+            methods: {
+                choosecheckDataPhotos: function () {
+                    var t_data = this;
+                    subei.upFile(this.checkDataPhotos, 6, 'Device',function (res) {
+                        this.checkDataPhotos = res;
+                    }.bind(this));
+
+                },
+                deleteImg: function (i) {
+
+                    subei.alerts('您确认要删除吗', function () {
+                        this.checkDataPhotos.splice(i, 1);
+                    }.bind(this));
+
+                },
+
+                // http://app-lift2.subei88.com:8080/api/Device/DeviceEdit
+                postDeviceEdit (){
+
+                    this.deviceInfo.DevicePhotos = this.checkDataPhotosStr;
+
+                    //if(!this.deviceAddress.lon){
+                    //    toastShow('请在百度地图选择经纬度！',2000);
+                    //    return;
+                    //}
+
+                    if(this.checkDataPhotos.length==0){
+                        toastShow('请上传设备图片！',2000);
+                        return;
+                    }
+
+                    if(!this.deviceInfo.DeviceName){
+                        toastShow('请填写设备名称！',2000);
+                        return;
+                    }
+
+                    if(!this.deviceInfo.DeviceAddress){
+                        toastShow('请填写设备地址！',2000);
+                        return;
+                    }
+
+                    delete this.deviceInfo.DeviceTenanceTypeIDs;
+                    delete this.deviceInfo.TenanceType;
+                    delete this.deviceInfo.ListTaskTenance;
+                    delete this.deviceInfo.ListTaskCheck;
+                    delete this.deviceInfo.ListDeviceFormAuditLog;
+                    delete this.deviceInfo.ListDeviceCancel;
+
+                    console.log('我是发送的数据'+JSON.stringify(this.deviceInfo));
+                    var t_data = this;
+
+                    apiAjax({url:'Device/DeviceEdit',type:'post',param: t_data.deviceInfo},function (data){
+                        toastShow('保存成功',2000);
+                        setTimeout(function (){closeWin()},1500);
+                    }.bind(this));
+
+                    //  subei.alerts(`确认保存吗？`, function () {
+
+                    // }.bind(this));
+
+                },
+
+                getDeviceInfo: function (){
+
+                    showLoader();
+                    apiAjax({url:"Device/Device/" + deviceId,type:'post',param:{}},function(data,total){
+
+                        hideLoader();
+                        console.log('这是设备详情'+JSON.stringify(data));
+                        this.deviceInfo = data;
+
+                        if(data.DevicePhotosPath.length>0){
+
+                            var photo = data.DevicePhotosPath;
+                            var photos = [];
+                            for(var i=0; i<photo.length; i++){
+                                var urlImg = (photo[i].url.indexOf('http://')>-1?photo[i].url:(base_url_photo+photo[i].url));
+                                photos.push({name: photo[i].name, photoUrl: urlImg, photoUrl1: urlImg, status: 2});
+                            };
+                            this.checkDataPhotos = photos;
+
+                        }
+                        this.lon = data.DeviceLngBD;
+                        this.lat = data.DeviceLngBD;
+
+                    }.bind(this));
+
+                },
+
+                getLngLat: function (){
+                    openWin('getLngLat_win','./../../../common/getLngLat/getLngLat_win.html',{win:'device_edit_win', frm:'device_edit_frm', load:'getLngLat'});
+                }
+
+            },
+            computed: {
+                checkDataPhotosStr: function () {
+
+                    var imgs = [];
+                    for (var item in this.checkDataPhotos) {
+                        if (this.checkDataPhotos[item].name) {
+                            imgs.push(this.checkDataPhotos[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+                }
+            },
+        })
+    });
+
+    function getLngLat(data){
+
+        console.log(JSON.stringify(data));
+        app.deviceAddress = data;
+        app.deviceInfo.DeviceLngBD = data.lon;
+        app.deviceInfo.DeviceLatBD = data.lat;
+
+    }
+
+</script>
+
+</html>

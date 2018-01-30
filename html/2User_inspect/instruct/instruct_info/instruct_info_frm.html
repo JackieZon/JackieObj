@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+
+        body { background: #f5f5f5; height: 100%; }
+        img { width: 25px; height: 25px; padding-right: 10px; }
+        .download { width: 70px; font-size: 13px; }
+        .new { color:  #1296db; }
+        .new_oper { color: #13227a; }
+	 #app{ box-sizing: border-box; padding-bottom: 15px; }
+
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+                    #app .record .record_list .record_content { display: flex; justify-content: space-between;}
+                    #app .record .record_list p { font-size: 14px; line-height: 30px; display: flex; align-items: center; }
+
+        #app .regulations { padding-top: 10px; background: #f5f5f5; }
+            #app .regulations textarea{ resize: none;  font-size: 15px; }
+
+        #app .inspect_info{ padding-top: 10px; background: #f5f5f5; }
+            #app .inspect_info .title{ padding-left: 10px; font-size: 12px; color: #888; }
+            #app .inspect_info textarea{ resize: none; height: 50px; font-size: 15px; }
+                #app .inspect_info .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; padding: 10px;  background: white; border-top: 1px solid #d9d9d9; }
+                    #app .inspect_info .maintenance_data p { width:80px; margin-right: 15px; }
+                    #app .inspect_info .maintenance_data .image { width: 80px; height: 80px; padding: 8px; }
+                        #app .inspect_info .maintenance_data .image img{ width: 100%; height: 100%; padding: 0; }
+        #app .table { padding: 10px 10px 0 10px; background: white; }
+            #app .table table { width: 100%; }
+                #app .table table tr { height: 40px; }
+                    #app .table table tr th { width: 25%; background: #8a8a8a; }
+                    #app .table table tr td { width: 25%; text-align: center; border:1px solid #8a8a8a; font-size: 14px; }
+
+        #app .inspect_info .programme{ display: flex; background: white; }
+            #app .inspect_info .programme .but{ width: 111px; height: 90px; border-top: 1px solid #d9d9d9; padding-right:10px; display: flex; align-items: center; background: white; }
+                #app .inspect_info .programme .but button { font-size: 14px; }
+        #app .button { display: flex; }
+        #app .button button { margin: 10px; }
+
+        #app .mint-popup { width: 100%; }
+        #app .mint-popup textarea{ resize: none; height: 80px; font-size: 15px; }
+        #app .examine .mint-cell-wrapper { background: #ffffff; }
+        #app .examine .mint-field.is-textarea .mint-cell-title { padding: 10px 0 10px 15px; }
+
+        #app .schedule { padding-left: 14px; }
+            #app .schedule .deviceStatus { display: flex; align-items: center; }
+                #app .schedule .deviceStatus p { padding: 0 22px 0 10px; }
+                #app .schedule .deviceStatus select { background: white; width: 35%; height: 30px; font-size: 15px;  }
+        .mar-top { width: 100%; height: 50px; }
+
+        .mar-bottom { width: 100px; height: 60px; }
+
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+      <div class="inspect_info">
+            <mt-field label="指令书编号" :value="instruct.CommandNo | s_toStr" disabled></mt-field>
+            <mt-field label="指令流水号" :value="('00000'+ instruct.CommandNoNum).substring(('00000'+ instruct.CommandNoNum).length-6)" disabled></mt-field>
+            <mt-field label="审核状态" :value="status[instruct.CommandStatus-1]" disabled></mt-field>
+      </div>
+      <div class="inspect_info">
+          <mt-button v-if="instruct.CommandStatus==3" type="default"  size="small" @click="downloadPDF">下载指令书</mt-button>
+            <mt-button type="default" size="small">下载指令书</mt-button> 
+      </div>
+        <div class="inspect_info">
+                <mt-field label="现使用单位" :value="instruct.CompanyUseNewName | s_toStr" disabled></mt-field>
+                <mt-field label="单位确认人" :value="instruct.CompanyUseConfirmMan | s_toStr" disabled></mt-field>
+                <mt-field label="联系电话" :value="instruct.CompanyUseConfirmManPhone | s_toStr" disabled></mt-field>
+                <mt-field label="单位意见" :value="instruct.CompanyUseResulOpinion | s_toStr" type="textarea" rows="4" disabled></mt-field>
+        </div>
+        <div class="task_result">
+            <div class="inspect_info">
+
+                <div class="regulations" @click="openChooseTask">
+                    <mt-field label="关联任务" disabled>{{'已关联任务('+taskLength+')'}}<img class="img_right" src="./../../../../image/arrow.svg" alt=""></mt-field>
+                </div>
+            </div>
+
+            <div class="inspect_info" v-if="instruct.CommandAuditMan1">
+                <mt-field label="审核人" :value="instruct.CommandAuditManName1" disabled></mt-field>
+                <mt-field label="审核描述" :value="instruct.CommandAuditIntro1 | s_toStr" type="textarea" rows="4" disabled></mt-field>
+                <mt-field label="审核时间" :value="instruct.CommandAuditDate1 | s_toDate" disabled></mt-field>
+            </div>
+
+            <div class="inspect_info" v-if="instruct.CommandAuditMan2">
+                <mt-field label="审核人" :value="instruct.CommandAuditManName2" disabled></mt-field>
+                <mt-field label="审核描述" :value="instruct.CommandAuditIntro2 | s_toStr" type="textarea" rows="4" disabled></mt-field>
+                <mt-field label="审核时间" :value="instruct.CommandAuditDate2 | s_toDate" disabled></mt-field>
+            </div>
+        </div>
+
+        <div class="task_result">
+          <div class="regulations">
+              <mt-field label="设备描述" disabled ></mt-field>
+              <mt-field v-model="instruct.CommandDeviceProblem" type="textarea" rows="5" disabled></mt-field>
+          </div>
+            <div class="regulations">
+                <mt-field label="隐患描述" disabled ></mt-field>
+                <mt-field v-model="instruct.CommandProblemNames" type="textarea" rows="3" disabled></mt-field>
+            </div>
+
+            <div>
+                <div class="regulations">
+                    <mt-field label="违反法律条款" v-model="instruct.CommandAgainstRulesNames" disabled ></mt-field>
+                    <mt-field v-model="instruct.CommandAgainstRulesInfo"  type="textarea" rows="3" disabled></mt-field>
+                </div>
+
+                <div class="regulations">
+                    <mt-field label="依据法律条款" v-model="instruct.CommandCcordingRulesNames" disabled ></mt-field>
+                    <mt-field v-model="instruct.CommandCcordingRulesInfo"  type="textarea" rows="3" disabled></mt-field>
+                </div>
+
+                <div class="regulations">
+                    <mt-field label="整改措施" v-model="instruct.CommandChangedNames" disabled ></mt-field>
+                    <mt-field v-model="instruct.CommandChangedInfo" type="textarea" rows="5" disabled></mt-field>
+                </div>
+            </div>
+
+            <div class="inspect_info" v-if="instruct.CommandPhotoListPath">
+                <div class="maintenance_data">
+                    <p>监察指令书</p>
+                    <div class="image" v-if="instruct.CommandPhotoListPath.length!==0" v-for="(item,index) in instruct.CommandPhotoListPath" @click="imgView(index,instruct.CommandPhotoListPath)">
+                        <img v-if="item" v-cache="item.url.indexOf('http://') == -1 ? base_url_photo + item.url : item.url" alt="暂无">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+
+        var instructId = subei.getParam('instructId');
+
+        window.app = new Vue({
+            el: "#app",
+            data: {
+                status: ['待审核', '审核退回', '已审核'],
+                auditValue:false,
+                auditResult:'通过',
+                instruct: {},
+                id:0,
+                base_url_photo: "http://app-lift2.subei88.com/",
+                commandAuditData:{
+                    ID:'',
+                    CommandStatus:3,  //审核状态
+                    CommandAuditIntro:''  //审核描述
+                },
+                taskLength:''
+            },
+            mounted: function () {
+                this.commandAuditData.ID = instructId;
+                this.getInstructInfo();
+            },
+            created: function (){
+                this.id = Number(localStorage.getItem('memberId'));
+            },
+            methods: {
+                downloadPDF: function () {
+
+                    var t_data = this;
+                    // 访问外部链接
+                    if (api.systemType === "android") {
+                        api.openApp({
+                            androidPkg: 'android.intent.action.VIEW',
+                            mimeType: 'text/html',
+                            uri: base_url + 'Agency/TaskCommand/GetTaskCommandPdf?id=' + instructId,
+                        }, function (ret, err) {
+
+                        });
+                    } else {
+                        api.openApp({
+                            iosUrl: base_url + 'Agency/TaskCommand/GetTaskCommandPdf?id=' + instructId,
+                        }, function (ret, err) {
+                            if (ret) {
+
+                            }
+                        });
+                    }
+
+                },
+                getInstructInfo: function (){
+
+                    showLoader();
+                    // http://app-lift2.subei88.com:8080/api/Device/TaskCommandInfo/2
+                    apiAjax({url:"Device/TaskCommandInfo/" + instructId,type:'post',param:{}},function(data){
+
+                        console.log('指令详情数据'+JSON.stringify(data));
+                        hideLoader();
+
+                        // if(data.CommandPhotoListPath){
+
+                        //     for(var i = 0; i <　data.CommandPhotoListPath.length; i++){
+
+                        //         if(data.CommandPhotoListPath[i].url.indexOf('http://') < 0){
+                        //             data.CommandPhotoListPath[i].url = base_url_photo + data.CommandPhotoListPath[i].url;
+                        //         }
+
+                        //     }
+
+                        // }
+
+                        if(data.CommandPhotoList){
+                            data.CommandPhotoList = data.CommandPhotoList.split(',');
+                        }
+                        this.instruct = data;
+                        this.taskLength = data.ListTaskCheck.length;
+                        // console.log(`我是想请里面的图片链接字段${this.taskCheckInfo.CheckResultPhotoList}`)
+
+                    }.bind(this));
+
+                },
+
+                openAudit: function (){
+                    this.auditValue = true;
+                },
+
+                commandAudit: function (){
+
+                    console.log('这是我要上传的审核数据'+JSON.stringify(this.commandAuditData));
+                    // return
+
+                    if(!this.commandAuditData.CommandAuditIntro){
+                        toastShow('请填写审核描述！');
+                        return;
+                    }
+
+                    showLoader();
+
+                    // http://app-lift2.subei88.com:8080/api/Device/TaskCommand_Audit
+                    apiAjax({url:'Device/TaskCommand_Audit',type:'post',param:this.commandAuditData},function(data){
+
+                        hideLoader();
+                        // console.log(JSON.stringify(data))
+                        toastShow('审核成功！');
+
+                        d_sendEventExtra("command_audit_ok",{});
+                        this.auditValue = false;
+                        setTimeout(function () { closeWin(); }, 1500);
+
+
+                    }.bind(this));
+
+                },
+
+                imgView: function (index,data){
+
+                    var photo = [];
+
+                    for(var i = 0; i < data.length; i++){
+                        photo.push(base_url_photo + data[i].url)
+                    }
+
+                    subei.imgPreview(index,photo);
+                },
+
+                openChooseTask: function (){
+                    openWin('associated_tasks_win','./../associatedTasks/associated_tasks_win.html',{instructId:instructId});
+                },
+
+            },
+            watch: {
+                auditResult: function (){
+                    this.commandAuditData.CommandStatus = (this.auditResult == '通过' ? 3 : 2);
+                }
+            }
+        })
+    });
+
+</script>
+
+</html>

@@ -1,0 +1,71 @@
+@function rem($px) {
+    $remSize: $px / 375 * 10;
+    @return #{$remSize}rem;
+}
+
+html,body,#app {
+     height: 100%; 
+}
+#app {
+    .banner { 
+        width: 100%;
+        height: rem(180); 
+        overflow: hidden; 
+        margin-bottom: 10px;
+        img { 
+            width: 100%; 
+        }
+    }
+    .home {
+        // padding: rem(4);
+        width: 100%; 
+        box-sizing: border-box;
+        display: flex; 
+        justify-content: center; 
+        flex-wrap: wrap; 
+        align-items: center;
+        .box{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between; 
+        }
+        .option {
+           width: rem(124);
+           height:rem(90); 
+        //    margin-top: rem(1); 
+           margin-top: rem(10); 
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           flex-wrap: wrap;
+           background:white; 
+           .option-border { 
+               width: 100%;
+               display: flex;
+               justify-content: center;
+               align-items: center;
+                .icon-border {
+                    width: rem(40);
+                    height: rem(40);
+                    margin-top: rem(9);
+                    border-radius: rem(5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    .icon {
+                        width:rem(30);
+                        height:rem(30);
+                        color:white; 
+                    }
+                }
+           }
+           p { 
+                font-size: rem(13);
+                color: black;
+                padding-bottom: rem(10)
+            }
+            
+        }
+   }
+}
+

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <title>维保任务</title>
+    <style></style>
+</head>
+<body>
+    <div id="app">
+        <aegis-list v-for="item in searchList" :key="item.ID" :items="item" @click.native="openTaskInfo(item)"></aegis-list>
+        <no-data :item="searchList" :load="TaskTenance"></no-data>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    // 注维保任务状态 0暂存 1待处理 2待审核 3审核退回 4审核通过
+    subei.ready(function(){
+        window.app = new Vue({
+            el:'#app',
+            data:{
+                searchValue: { PageSize: 10, PageIndex: 1, RowCount: 0, TenanceStatus: 2,keyword: null},
+                searchList: []
+            },
+            mounted: function (){
+                
+                var t_data = this;
+
+                subei.getDataInit(this, function () {
+
+                    this.searchValue.keyword = '';
+                    this.TaskTenance();
+
+                }.bind(this));
+
+                d_addEventListener('confim_ok', function () {
+
+                    this.searchValue.keyword = '';
+                    this.TaskTenance();
+                    
+                }.bind(this));
+
+
+            },
+
+            methods:{
+                // http://app-lift2.subei88.com:8080/api/Device/TaskTenance
+                TaskTenance: function (){
+                    showLoader();
+                    apiAjax({url:'Device/TaskTenance',type:'post',param:this.searchValue},function(data,total){
+                        hideLoader();
+                        this.searchValue.RowCount = total || 0;
+                        this.searchList = this.searchList.concat(data);
+
+                        console.log(JSON.stringify(this.searchList));
+
+                    }.bind(this));
+
+                },
+                openTaskInfo: function (item){
+                    openWin('task_info','./../../common/aegis_task_3_4/task_info_win.html',{taskId: item.ID,deviceId: item.DeviceID});
+                }
+
+            }
+        });
+    });
+
+    function changeTab(val){
+        app.searchList = [];
+        app.searchValue.PageIndex = 1;
+        app.searchValue.TenanceStatus = val;
+        app.TaskTenance();
+    };
+
+</script>
+</html>

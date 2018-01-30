@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+</head>
+
+<body>
+    <div class="header" ref="header" id="header">
+        <mt-header title="指令详情">
+            <div slot="left">
+                <mt-button icon="back" onclick="api.closeWin();"></mt-button>
+            </div>
+            <!--<mt-button v-if="commandStatus==3" slot="right" size="small" @click="downloadPDF">下载指令书</mt-button>-->
+        </mt-header>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script>
+    subei.ready(function () {
+
+        var instructId = subei.getParam('instructId');
+        var commandStatus = subei.getParam('CommandStatus');
+        
+        new Vue({
+            el: "#header",
+            data: {
+                instructId: instructId,
+                commandStatus: commandStatus
+            },
+            mounted: function () {
+
+                openFrame('instruct_info_frm', './instruct_info_frm.html', { instructId: instructId });
+
+                d_addEventListener('getCommandStatus',function(data){
+                    this.commandStatus = data.value.status;
+                }.bind(this));
+
+            },
+            methods:{
+
+                downloadPDF: function (){
+
+                    var t_data = this;
+                    // 访问外部链接
+                    if (api.systemType === "android") {
+                        api.openApp({
+                            androidPkg: 'android.intent.action.VIEW',
+                            mimeType: 'text/html',
+                            uri:  base_url + 'Agency/TaskCommand/GetTaskCommandPdf?id=' + instructId,
+                        }, function(ret, err) {
+
+                        });
+                    } else {
+                        api.openApp({
+                            iosUrl: base_url + 'Agency/TaskCommand/GetTaskCommandPdf?id=' + instructId,
+                        }, function(ret, err) {
+                            if (ret) {
+
+                            }
+                        });
+                    }
+
+                },
+            }
+        })
+    })
+
+</script>
+
+</html>

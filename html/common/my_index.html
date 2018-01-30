@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../css/base.css">
+    <link rel="stylesheet" href="./../../css/mint/style.css">
+    <title>3Tab</title>
+    <style>
+        .upper{
+            position: relative;
+            padding: 15px 20px;
+            box-sizing: border-box;
+            background:linear-gradient(270deg,#37B9FE,#27c5fd 25%,#4e8efe);
+            display: flex;
+            flex-direction: row;
+        }
+        .upper .mint-cell{
+            background-color: rgba(0,0,0,0)!important;
+            color: #fff;
+        }
+        #app a:active{
+            background: #dbdbdb;
+            background-color: #dbdbdb;
+        }
+        .upper .header{
+            height: 80px;
+            width: 80px;
+            background: rgba(255, 255, 255, 0.6);
+            color: #fff;
+            border-radius: 8%;
+            box-sizing: border-box;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .upper .intro{
+            box-sizing: border-box;
+            padding-left: 10px;
+            color: #fff;
+            font-size: 14px;
+            width: 100%;    
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .upper .intro .item{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            line-height: 24px;
+        }
+        .lower{
+            box-sizing: border-box;
+            padding: 15px 0;
+        }
+        .lower .item{
+            box-sizing: border-box;
+            padding-bottom: 15px;
+        }
+        .lower .icon{
+            color: #26a2ff;
+            margin-right: 5px;
+        }
+        .lower .a{
+            display: block;
+            border: 1px solid red;
+            text-align: center;
+        }
+        .mint-cell-title{
+            display: flex;
+            align-items: center;
+        }
+        .mint-cell-mask{
+            display: none!important;
+        }
+        .mint-cell-wrapper{
+            background-image: none!important;
+        }
+        .mint-cell:last-child{
+            background-image: none!important;
+        }
+        .upper .userTypeName{
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 12px;
+            color: #fff;
+        }
+        .signOut { width: 100%; box-sizing: border-box; padding: 0 10px 0 10px; }
+            .signOut .but{ width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div class="upper">
+            <div class="header">
+                <Icon :name="'icon-peoplelist'" :width="80" :height="80"></Icon>
+            </div>
+            <div class="intro">
+                <div class="item">
+                    <div class="label">
+                        {{userInfo.UserName | s_toStr}}
+                    </div>
+                    <div class="info">
+                        <!-- {{ userTypeName | s_toStr}} -->
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="label">
+                        {{userInfo.UserPhone|s_toStr}}
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="label">
+                        昵称/部门：{{userInfo.UserDeptNames|s_toStr}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lower">
+            <div class="item">
+                <mt-cell title="消息通知" is-link @click.native="openPage('my_msg_win','./1msg/my_msg_win.html')">
+                    <mt-badge v-if=" count > 0 " type="error">{{ count }}</mt-badge>
+                    <Icon slot="icon" :name="'icon-community'"></Icon>
+                </mt-cell>
+            </div>
+            <div class="item">
+                <mt-cell title="修改密码" is-link @click.native="openPage('changePwd_win','./2changePwd/changePwd_win.html')">
+                    <Icon slot="icon" :name="'icon-command'"></Icon>
+                </mt-cell>
+                <mt-cell title="系统介绍" is-link @click.native="openPage('system_win','./3system/system_win.html')">
+                    <Icon slot="icon" :name="'icon-info'"></Icon>
+                </mt-cell>
+                <mt-cell title="系统版本" :value="appVersion">
+                    <Icon slot="icon" :name="'icon-apps'"></Icon>
+                </mt-cell>
+            </div>
+            <div class="item">
+                <mt-cell title="意见反馈" is-link @click.native="openPage('opinion_win','./4opinion/opinion_win.html')">
+                    <Icon slot="icon" :name="'icon-tag'"></Icon>
+                </mt-cell>
+            </div>
+
+            <div class="signOut">
+                <mt-button class="but" type="danger" @click="signOut">退出登录</mt-button>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./../../script/api.js"></script>
+<script src="./../../script/device.js"></script>
+<script src="./../../script/axios.js"></script>
+<script src="./../../script/vue/vue.js"></script>
+<script src="./../../script/base.js"></script>
+<script src="./../../script/jquery.js"></script>
+<script src="./../../script/mint/index.js"></script>
+<script src="./../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function(){
+        new Vue({
+            el:'#app',
+            data:{
+                userTypeName: localStorage.UserTypeName,
+                userInfo: {},
+                count:0,
+                appVersion:''
+            },
+            methods:{
+                openPage: function (name,path){
+                    openWin(name,path,{});
+                },
+                signOut: function (){
+                    subei.alerts('您确认退出吗？', function () {
+                        closeWin();
+                    })
+                },
+                getMemberInfo: function (){
+                    // http://app-lift2.subei88.com:8080/api/Member/MemberInfo/14
+                    var memberId = localStorage.memberId || 0;
+                    showLoader();
+                    apiAjax({url:'Member/MemberInfo/'+memberId,type:'post',param:{}},function(data,total){
+
+                        hideLoader();
+                        var self = this;
+                        console.log(JSON.stringify(data));
+                        this.userInfo = data;
+                        window.setInterval(function (){ self.messageCount() },5000);
+                    }.bind(this));
+                },
+
+                messageCount: function (){
+                    
+                    var t_data = this;
+                    var t_url = 'Member/MessageCount';
+
+                    $.ajax({
+                        type:'get',
+                        dataType:'json',
+                        data:{},
+                        url:base_url_api + t_url,
+                        success: function (res){
+                            if(res.status){
+                                t_data.count = res.info; 
+                            }
+                        },
+                        error: function (err){
+                            api.toast({ msg: err.info })
+                        }
+                    })
+
+                }
+
+            },
+            mounted: function (){
+                this.appVersion = api.appVersion;
+                this.getMemberInfo();
+                this.messageCount();  
+            }
+        });
+    })
+</script>
+</html>

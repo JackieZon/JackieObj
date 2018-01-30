@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <style>
+        html,body{background: none!important;}
+        select { width:90px; background: #fff; border: 0px;}
+        #app{ height: 100%;width: 100%; }
+        #app .main{background: #fff; margin-top: 10px;}
+        .footers{width: 100%; background: #fff; box-sizing: border-box; padding: 10px;}
+        .footers button{width: 100%;}
+        .footers .danger { margin-top: 10px; }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak @click.self="closePage">
+        <div class="main" v-cloak>
+            <mt-field label="使用单位" placeholder="输入使用单位" v-model="defaultData.DeviceUseName"></mt-field>
+            <mt-field label="设备注册号" placeholder="输入设备注册号" v-model="defaultData.DeviceRegNo"></mt-field>
+            <mt-field label="设备证书编号" placeholder="输入设备证书编号" v-model="defaultData.DeviceCertNo"></mt-field>
+            
+            <mt-field label="设备类型" disabled>
+                <select name="设备类型" v-model="defaultData.DeviceType1">
+                    <option v-for="item in deviceType" :value="item.value">{{ item.lable }}</option>
+                </select>
+            </mt-field>
+
+            <mt-field label="设备状态" disabled>
+                <select name="设备状态" v-model="defaultData.DeviceStatus">
+                    <option v-for="item in deviceStatus" :value="item.value">{{ item.lable }}</option>
+                </select>
+            </mt-field>
+
+            <mt-field label="设备所在街镇" disabled>
+                <select name="设备所在街镇" v-model="defaultData.DeviceArea4">
+                    <option v-for="item in deviceAddress" :value="item.value">{{ item.lable }}</option>
+                </select>
+            </mt-field>
+            <mt-field label="设备地址" placeholder="输入设备地址" v-model="defaultData.DeviceFullAddress"></mt-field>
+            <div class="footers">
+                <mt-button type="primary" @click="isOk">搜索</mt-button>
+                <mt-button class="danger" type="danger" @click="cancel">取消</mt-button>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script>
+    subei.ready(function (){
+        var app = new Vue({
+            el:'#app',
+            data:{
+                defaultData:{
+                    DeviceName: '',
+                    DeviceModel: '',
+                    DeviceNo: '',
+                    DeviceRegNo: '',
+                    DeviceCertNo: '',
+
+                    DeviceType1: '',
+                    // DeviceType2: '',
+                    DeviceStatus: '',
+                    DeviceUseName: '',
+                    DeviceFullAddress: '',
+                    DeviceArea4: ''
+
+                },
+                deviceType:[
+                    {lable:'请选择',value:""},
+                    {lable:'锅炉',value:1},
+                    {lable:'压力容器',value:2},
+                    {lable:'电梯',value:3},
+                    {lable:'起重机械',value:4},
+                    {lable:'场（厂）内专用机动车辆',value:5},
+                    {lable:'压力管道',value:6}
+                ],
+                deviceStatus:[
+                    {lable:'请选择',value:""},
+                    {lable:'在用',value:1},
+                    {lable:'停用',value:2},
+                    {lable:'检测中',value:3},
+                    {lable:'整改中',value:4}
+                ],
+
+                deviceAddress: [
+                    {lable:'请选择',value:""},
+                    {lable:'狮山',value:24},
+                    {lable:'桂城',value:25},
+                    {lable:'和顺',value:26},
+                    {lable:'三山',value:27},
+                    {lable:'松岗',value:28},
+                    {lable:'西樵',value:29},
+                    {lable:'大沥',value:30},
+                    {lable:'罗村',value:31},
+                    {lable:'里水',value:32},
+                    {lable:'平洲',value:33},
+                    {lable:'南海',value:34},
+                    {lable:'盐步',value:35},
+                    {lable:'黄岐',value:36},
+                    {lable:'金沙',value:37},
+                    {lable:'官窑',value:38},
+                    {lable:'丹灶',value:39},
+                    {lable:'小塘',value:40},
+                    {lable:'九江',value:41},
+                    {lable:'沙头',value:42}
+                ]
+            },
+
+            mounted: function (){
+
+                this.defaultData = JSON.parse(subei.getParam('defaultData'));
+                // alert(JSON.stringify(subei.getParam('defaultData')))
+
+            },
+
+            methods:{
+                isOk: function(){
+
+                        d_sendEventExtra('search',{data: JSON.stringify(this.defaultData)});
+                        d_sendEventExtra("searchChange",{searchChange: 1,defaultData:JSON.stringify(this.defaultData)});
+                        setTimeout(function(){
+                            closeWin('search_win');
+                        },800)
+
+                },
+
+                cancel: function (){
+
+                    this.defaultData = clearValue
+                    d_sendEventExtra('search',{data: JSON.stringify(this.defaultData)});
+                    d_sendEventExtra("searchChange",{searchChange: 0,defaultData:JSON.stringify(this.defaultData)});
+                    setTimeout(function(){
+                        closeWin('search_win');
+                    },800)
+
+                },
+
+                closePage: function (){
+                    closeFrame('search');
+                }
+            }
+        })
+    })
+</script>
+</html>

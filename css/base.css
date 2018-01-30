@@ -1,0 +1,86 @@
+﻿@import url(./api.css);
+
+html,body{width: 100%;height: 100%;padding: 0;margin: 0;background: #f5f5f5;}
+.weui_btn_dialog.primary{color:#33CC99!important;}
+a { color: #666; }
+i { font-style: normal; }
+
+.h5 { clear: both; height: 5px; line-height: 5px; }
+.h10 { clear: both; height: 10px; line-height: 10px; }
+.h15 { clear: both; height: 15px; line-height: 15px; }
+.h20 { clear: both; height: 20px; line-height: 20px; }
+.h30 { clear: both; height: 30px; line-height: 30px; }
+
+.left { float: left; }
+.right { float: right; }
+.clear { clear: both; }
+
+.active { opacity: 0.7; }
+.star { color: red; }
+
+.weui_cell { background: #fff; }
+.header {background:linear-gradient(270deg,#37B9FE,#27c5fd 25%,#4e8efe);}
+.mint-header-title { font-size: 18px !important; }
+.footer {position: fixed; bottom: 0;left: 0;width: 100%;box-sizing: border-box;padding: 10px;background: #fff; z-index: 999;}
+.footer button{width:100%;}
+.mint-header{background: linear-gradient(270deg,#37B9FE,#27c5fd 25%,#4e8efe)!important; height: 45px!important;}
+.center{display: flex;justify-content:flex-start;align-items: center;}
+#aui-header { background: #26a2ff;height: 45px; }
+    #aui-header .aui-iconfont { color: #fff; }
+
+.mint-navbar .mint-tab-item.is-selected { margin-bottom: 0!important; }
+
+/* 提示（页面无数据时） */
+section.tips { position: absolute; top: 40%; left: 0; text-align: center; width: 100%; margin-top: -100px; }
+    section.tips .tip-img { font-size: 100px; color: #ccc; }
+    section.tips .tip-content { }
+    section.tips a { margin: 15px 0; padding: 3px 12px; display: inline-block; border: 1px solid #ccc; border-radius: 5px; line-height: 30px; font-size: 16px; color: #666; }
+
+/* 提示（上拉时） */
+body.loadUp { padding-bottom: 100px; }
+section.loadUp { position: fixed; bottom: 0; left: 0; text-align: center; width: 100%; background: #fff; }
+    section.loadUp .tip-img { font-size: 100px; color: #ccc; }
+    section.loadUp .tip-content { }
+    section.loadUp a { margin: 15px 0; padding: 3px 12px; display: inline-block; border: 1px solid #ccc; border-radius: 5px; line-height: 30px; font-size: 16px; color: #666; }
+
+/* 基础表单样式 */
+div.controls { position: relative; margin: 0; border-radius: 3px; background: #fff; padding: 5px 10px 5px 10px; }
+    div.controls i.icon { width: 24px; height: 24px; display: block; position: absolute; top: 6px; left: 10px; margin: 7px 0; background-size: auto 100%; text-align: center; }
+    div.controls label { margin-bottom: 6px; font-size: 14px; }
+    div.controls input { border: none; width: 100%; -webkit-appearance: none; }
+    div.controls select { -webkit-appearance: none; font-size: 14px; line-height: 26px; padding: 5px; border: 1px solid #ccc; border-radius: 0; }
+    div.controls textarea { border: none; background: #fff; width: 100%; }
+    div.controls button { text-align: center; font-size: 16px; }
+
+div.controls { position: relative; /*填写资料－－左右格式*/ }
+    div.controls label { position: absolute; left: 0; top: 0; font-size: 14px; line-height: 20px; padding: 8px 0; color: #333; }
+    div.controls input { width: 80%; font-size: 14px; padding: 10px 10%; color: #333; line-height: normal; vertical-align: middle; border-bottom: 1px #ccc solid; }
+    div.controls .star { color: red; }
+    div.controls input:focus { border-bottom: 1px #3399ff solid; }
+div.controlsPhotoList { position: relative; margin: 5px 0; border: 1px solid #ccc; border-radius: 3px; background: #fff; padding: 10px; }
+div.controlsMemo { position: relative; margin: 5px 0; border: 1px solid #ccc; border-radius: 3px; background: #fff; padding: 10px; }
+
+/* 上传图片的样式 */
+.sb_photolist { position: relative; }
+    .sb_photolist .pic { position: relative; }
+    .sb_photolist i { font-style: normal; }
+        .sb_photolist i.delete { position: absolute; z-index: 9999; width: 16px; height: 16px; top: 0; right: 0; text-align: center; background: #f30; color: #fff; line-height: 16px; font-size: 12px; font-family: 'Arial,Microsoft YaHei'; font-style: initial; }
+        .sb_photolist i.loading { display: none; position: absolute; z-index: 9998; width: 100%; height: 100%; top: 0; left: 0; text-align: center; line-height: 72px !important; font-size: 12px; font-family: 'Microsoft YaHei'; background: rgba(0, 0, 0, 0.60); color: #fff; }
+
+[v-cloak]{ display: none;}
+
+*:focus { outline: none; }
+input {outline:none;}
+.aui-tab-item.aui-active{color: #33cc99;border-bottom: 2px solid #33cc99;}
+.boxCenter{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.textLength{
+    white-space:nowrap; text-overflow:ellipsis; -o-text-overflow:ellipsis; overflow:hidden;
+}
+
+
+

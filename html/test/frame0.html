@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>云API</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <style>
+        .empty {
+            text-align: center;
+            padding: 120px 0;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="empty">云API
+        <p> <button onclick="login()">登录</button></p>
+        <p> <button onclick="Getinfo()">获取状态</button></p>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="../script/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+
+    }
+
+    function login() {
+        api.ajax({
+            url: 'http://wx-cityrisk.subei88.com:8080/api/Member/MemberLogin',
+            method: 'post',
+            headers: {
+                testhead: 'aaaaa',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+            },
+            data: {
+                body: $.param({
+                    username: '111',
+                    userpwd: '123456',
+                    arrtetst: [{
+                        aa: 'aa',
+                        bb: 'bb',
+                        detailist:[{detailaa:'detailaa',detailbb:'detailbb'},{detailaa:'detailaa',detailbb:'detailbb'}]
+                    }, {
+                        aa: 'aa',
+                        bb: 'bb',
+                        detailist:[{detailaa:'detailaa',detailbb:'detailbb'},{detailaa:'detailaa',detailbb:'detailbb'}]
+                    }, {
+                        aa: 'aa',
+                        bb: 'bb',
+                        detailist:[{detailaa:'detailaa',detailbb:'detailbb'},{detailaa:'detailaa',detailbb:'detailbb'}]
+                    }]
+                })
+            }
+        }, function(ret, err) {
+            if (ret) {
+                api.alert({
+                    msg: JSON.stringify(ret)
+                });
+            } else {
+                api.alert({
+                    msg: JSON.stringify(err)
+                });
+            }
+        });
+    }
+
+    function Getinfo() {
+        $api.post('http://wx-cityrisk.subei88.com:8080/api/Member/MemberInfo/18', {
+            values: {}
+        }, function(ret) {
+            alert(ret);
+        }, 'text');
+    }
+</script>
+
+</html>
+<span id="info_jb51_net">请改变浏览器窗口大小</span>
+<script>
+
+window.onresize = function(){
+    alert("宽度："+document.documentElement.clientWidth+"，高度："+document.documentElement.clientHeight);
+    // document.getElementById("info_jb51_net").innerHTML="宽度："+document.documentElement.clientWidth+"，高度："+document.documentElement.clientHeight;
+}
+</script>

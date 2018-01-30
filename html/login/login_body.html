@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,adress=no">
+    <link href="../../css/aui2.0/aui.2.0.css" rel="stylesheet" />
+    <link href="./../../css/base.css" rel="stylesheet" type="text/css" />
+	<style type="text/css">
+       	body { height: 100%; background: #fff; }
+        a.lnk { color: #01054f; }
+        .logo { width: 40%; margin: auto; text-align: center; padding: 90px 0 20px; }
+        .logo img { width: 100%; }
+
+        div.controls { position: relative; margin: 10px; padding: 0 0 0 80px; border-radius: 5px; background: #f6f6f6; }
+            div.controls span { position: absolute; left: 20px; top: 5px; font-size: 14px; color: #333; z-index: 9999; line-height: 34px; padding: 0; display: block; }
+            div.controls input { font-size: 14px; padding: 5px 5%; line-height: 24px; display: block; border-bottom: 1px solid #fff; background: none; width: 90%; box-sizing: padding-box; }
+                div.controls input:focus { border-bottom: 1px #fff solid; }
+
+        div.btn { text-align: center; }
+            div.btn a { display: block; background: #3388ff; margin: 10px; padding: 10px; line-height: 24px; color: #fff; border-radius: 4px; letter-spacing: 3px; }
+                div.btn a:focus { background: #3388ff; }
+
+        div.pwd { text-align: center; }
+            div.pwd a { line-height: 30px; font-size: 13px; }
+
+        div.login { position: relative; z-index: 99; background: #fff; }
+        div.reg { position: fixed; bottom: 0px; left: 0px; width: 100%; text-align: center; padding: 15px 0; z-index: 90; }
+            div.reg a { line-height: 30px; font-size: 16px; }
+
+        .aui-list:before { height: 0px; }
+        .aui-list:after { height: 0px; }
+
+        #otherWay { margin-top: 30px; }
+            #otherWay .title { text-align: center; margin: 10px; }
+            #otherWay .icon { text-align: center; }
+                #otherWay .icon i { font-size: 36px; }
+
+        .aui-margin-b-15 { margin-bottom: 0 !important; height: 44px; }
+
+        .aui-list .aui-list-item-title { font-size: 15px !important; }
+    </style>
+</head>
+<body>
+	<div id="main" class="main">
+        <div class="logo">
+            <img v-cache="'http://app-lift2.subei88.com/Assets/img/logo.png'" />
+            <p style="position: relative; font-size: 17px; bottom: 17px;">特种设备监察</p>
+        </div>
+        <div class="login">
+            <div class="h30"></div>
+            <div class="controls">
+                <span>
+                    账 号:
+                </span>
+                <input v-model="loginData.UserName" type="tel" placeholder="请输入手机号" />
+            </div>
+            <div class="controls">
+                <span>
+                    密 码:
+                </span>
+                <input v-model="loginData.UserPwd" type="password" placeholder="请输入密码" />
+            </div>
+            <div class="aui-content aui-margin-b-15">
+                <ul class="aui-list aui-media-list">
+                    <li class="aui-list-item" style="display:block;">
+                        <div class="aui-list-item-inner">
+                            <div class="aui-list-item-title aui-pull-left" style="text-align:center; display: flex; align-items: center;">记住密码<input style="margin-left: 5px;" type="checkbox" v-model="rememberPwd"></div>
+                            <div class="aui-list-item-title aui-pull-right" style="text-align:center;" @click="openPage('forget_win','./forgetPwd/forget_win.html')">忘记密码</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="btn">
+                <a tapmode @click="login()">登录</a>
+            </div>
+        </div>
+        
+        <!-- <div class="aui-content aui-margin-b-15">
+            <ul class="aui-list aui-media-list">
+                <li class="aui-list-item" style="display:block;">
+                    <div class="aui-list-item-inner">
+                        <div class="aui-list-item-title aui-pull-left" style="text-align:center;display: none;" @click="openPage('reg_win','./reg/reg_win.html')">立即注册</div>
+                        <div class="aui-list-item-title aui-pull-right" style="text-align:center;" @click="openPage('forget_win','./forgetPwd/forget_win.html')">忘记密码</div>
+                    </div>
+                </li>
+            </ul>
+        </div> -->
+    </div>
+</body>
+<script src="./../../script/api.js"></script>
+<script src="./../../script/base.js"></script>
+<script src="./../../script/vue/vue.js"></script>
+<script src="./../../script/device.js"></script>
+<script src="./../../script/jquery.js"></script>
+<script src="./../../script/axios.js"></script>
+<script src="./../../script/mint/index.js"></script>
+<script src="./../../icon/icon/iconfont.js"></script>
+<script>
+    
+    subei.ready(function () {
+
+        window.app = new Vue({
+            el: '#main',
+            data: {
+                rememberPwd: false,
+                loginData:{
+                    UserName: '',
+                    UserPwd: ''
+                },
+                accountType:['质监部门','巡查员','使用单位','维保单位'],
+                location:'',
+                systemType: '',
+                serMacID:'',
+            },
+            mounted: function () {
+
+                    this.rememberPwd = localStorage.getItem('change');
+                    if(localStorage.getItem('userName')){
+                        this.loginData.UserName = localStorage.getItem('userName');
+                        this.loginData.UserPwd = localStorage.getItem('userPwd');
+                    }
+
+                if(subei.isApp){
+
+                    // 检测版本更新
+                    subei.checkUpdate();
+
+                    var t_data = this;
+                    this.systemType = api.systemType;
+                    this.serMacID = api.deviceId;
+                    this.forbiddenReturn();
+
+                    subei.openAjpush(function(id){
+                        console.log('我是极光推送的ID||'+id);
+                        t_data.UserMacSendID = id;
+                    });
+
+                    api.addEventListener({
+                            name : 'pause'
+                        }, function(ret, err) {
+                            var map = api.require('bMap'); //获取当前经纬度，用于签到任务
+                            map.stopLocation();
+                    });
+
+
+                }
+                subei.openMsgWin(function(data){
+                    var dataID = data.extra.content.DataID;
+                    var dataType = data.extra.content.MessageType;
+
+                    if(dataType=='A1'){
+                        d_sendEventExtra('sortA1',{id:dataID});
+                        closeWinTo('index');
+                    }else if(dataType=='A2'){
+                        d_sendEventExtra('sortA2',{id:dataID});
+                        closeWinTo('index');
+                    }else if(dataType=='A3'){
+                        openWin('instruct_info_win','./../2User_inspect/instruct/instruct_info/instruct_info_win.html',{instructId: dataID});
+                    }else if(dataType=='A4'){
+                        openWin('instruct_info_win','./../2User_inspect/instruct/instruct_info/instruct_info_win.html',{instructId: dataID});
+                    }else if(dataType=='B1'){
+                        openWin('inspect_info_win','./../common/task_info_1_2/inspect_info_win.html',{taskId: dataID});
+                    }else if(dataType=='B2'){
+                        openWin('feedBack_submit_win','./../2User_inspect/1Tab/tasks_submit/tasks_submit_win.html',{taskId: dataID});
+                    }else if(dataType=='B3'){
+                        openWin('instruct_info_win','./../2User_inspect/instruct/instruct_info/instruct_info_win.html',{instructId: dataID});
+                    }
+
+                })
+                
+                // 获取手机经纬度
+                // subei.getLocation(function(res){
+                //     console.log('我是经纬度||'+res);
+                //     t_data.location = res;
+                // });
+
+            },
+            watch:{
+                rememberPwd (val){
+                    if(val) {
+                        localStorage.setItem('change',val);
+                        localStorage.setItem('userName',this.loginData.UserName);
+                        localStorage.setItem('userPwd',this.loginData.UserPwd);
+                    }else{
+                        localStorage.setItem('change',val);
+                        localStorage.removeItem('userName');
+                        localStorage.removeItem('userPwd');
+                    }
+                }
+            },
+            methods:{
+                login: function(){
+                    
+                    // 维保单位测试账号   3     密码 123456
+                    // 使用单位测试账号   2     密码 123456
+                    // 质检部门测试账号   5     密码 123456
+                    // 巡查员账号        6     密码 123456
+
+                    var param = {
+                        username: this.loginData.UserName,
+                        userpwd: this.loginData.UserPwd,
+                        // username: 6,
+                        // userpwd: 123456,
+                        UserMacSendID: this.UserMacSendID,
+                        UserLocation:this.location,
+                        UserMacModel: this.systemType,
+                        UserMacID: this.serMacID
+                    }
+
+                    if(this.rememberPwd){
+                        localStorage.setItem('change',this.rememberPwd);
+                        localStorage.setItem('userName',this.loginData.UserName);
+                        localStorage.setItem('userPwd',this.loginData.UserPwd);
+                    }else{
+                        localStorage.removeItem('userName');
+                        localStorage.removeItem('userPwd');
+                    }
+                    
+                    var map = api.require('bMap'); //获取当前经纬度，用于签到任务
+
+                    map.stopLocation();
+
+                    apiAjax({url:'Member/MemberLogin',type:'post',param:param},function(data){
+
+                        var userType = ['使用单位','维保单位','检查机构','质检部门'];
+                        localStorage.memberId = data.ID;
+                        localStorage.UserLoginTypeID = data.UserLoginTypeID;
+                        localStorage.UserIsTasker = data.UserIsTasker;
+
+                        console.log(JSON.stringify(data));
+                        console.log('账户类型||'+data.UserLoginTypeID+'||'+userType[data.UserLoginTypeID-2]+'|| UserIsAuditer:'+data.UserIsAuditer);
+
+                        switch (data.UserLoginTypeID) {
+                            case 5:
+
+                                if(data.UserIsAuditer==1){
+                                    console.log('执行 1User_quality/index.html')
+                                    localStorage.UserTypeName = '质检部门';
+                                    openWin('index','./../1User_quality/index.html',{num:1});
+                                }else if(data.UserIsTasker==1){
+                                    console.log('执行 2User_inspect/index.html')
+                                    localStorage.UserTypeName = '巡查员';
+                                    openWin('index','./../2User_inspect/index.html',{num:1});
+                                }else{
+                                    console.log('执行 2User_inspect/index.html')
+                                    localStorage.UserTypeName = '站长';
+                                    openWin('index','./../2User_inspect/index.html',{num:1});
+                                }
+
+                                // switch (data.UserIsTasker) {
+                                //     case 0:
+                                //         localStorage.UserTypeName = '质检部门';
+                                //         openWin('index','./../1User_quality/index.html',{num:1});
+                                //         break;
+                                //     case 1:
+                                //         localStorage.UserTypeName = '巡查员';
+                                //         openWin('index','./../2User_inspect/index.html',{num:1});
+                                //         break;
+                                // }
+                                break;
+                            // case 4:
+                            //     openWin('index','./../2User_inspect/index.html',{num:1});
+                            //     break;
+                            case 2:
+                                localStorage.UserTypeName = '使用单位';
+                                console.log('执行 3User_use/index.html');
+                                openWin('index','./../3User_use/index.html',{num:1});
+                                break;
+                            case 3:
+                                localStorage.UserTypeName = '维保单位';
+                                console.log('执行 4User_aegis/index.html');
+                                openWin('index','./../4User_aegis/index.html',{num:1});
+                                break;
+                            default:
+                                api.alert({
+                                    msg: '账户类型有误'
+                                }, function(ret, err) {});
+                        }
+
+                    });
+                    
+                },
+                goPage: function(){
+                    var type = Number(this.loginData.UserName);
+                    api.alert({
+                        msg: (this.accountType[type-1]?'您通过 \''+this.accountType[type-1]+'\' 账户登录':'已通过账号登录')
+                    }, function(ret, err) {
+
+                        console.log(this.loginData.UserName);
+                        console.log(typeof(this.loginData.UserName));
+
+                        switch (type) {
+                            case 1:
+                                openWin('index','./../1User_quality/index.html',{num:1});
+                                break;
+                            case 2:
+                                openWin('index','./../2User_inspect/index.html',{num:1});
+                                break;w
+                            case 3:
+                                openWin('index','./../3User_use/index.html',{num:1});
+                                break;
+                            case 4:
+                                openWin('index','./../4User_aegis/index.html',{num:1});
+                                break;
+                            default:
+                                this.login();
+                        }
+
+                    }.bind(this));
+                    
+                },
+                openPage: function(name,path){
+                    openWin(name,path,{num:1});
+                },
+
+                forbiddenReturn: function (){
+
+                    var num = 0;
+
+                    var time1,time2;
+
+
+                    api.addEventListener({
+                        name: 'keyback'
+                    },function (){
+                        
+                        if( num == 0 ){
+                            time1 = new Date().getTime();
+                            num = 1;
+                            api.toast({msg:'再按一次退出程序！'})
+                        }else if( num == 1 ){
+                            
+                            time2 = new Date().getTime();
+
+                            if(time2 - time1 < 3000){
+
+                                api.closeWidget({
+                                    id : api.appId,
+                                    retData : {
+                                        name : 'closeWidget'
+                                        },
+                                        silent : true
+                                })
+                            }else{
+                                num = 0;
+                                api.toast({ msg:'再按一次退出程序！' })
+                            }
+
+                        }
+
+                    })
+
+                }
+            }
+        });
+
+    });
+
+</script>
+</html>

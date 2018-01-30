@@ -1,0 +1,1162 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        body {
+            background: #f5f5f5;
+        }
+
+        img {
+            width: 16px;
+            height: 16px;
+            padding-right: 10px;
+        }
+
+        input[type=checkbox] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .company {
+            display: flex;
+            flex-wrap: wrap;
+            background: white;
+        }
+
+        .required {
+            display: flex;
+            align-items: center;
+            background: white;
+        }
+
+        .required .scan {
+            width: 50px;
+            height: 30px;
+            background: #26a2ff;
+            border-radius: 10px;
+            position: absolute;
+            right: 10px;
+            top: 78px;
+            z-index: 999;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .required .required_span {
+            margin-left: 10px;
+            color: red;
+        }
+
+        .required_span {
+            color: red;
+        }
+
+        #app {
+            box-sizing: border-box;
+            padding-bottom: 70px;
+        }
+
+        #app .record .record_list {
+            background: white;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        #app .record .record_list .record_content {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #app .record .record_list p {
+            font-size: 14px;
+            line-height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        #app .task_info {
+            margin-top: 10px;
+        }
+
+        #app .regulations {
+            margin-top: 10px;
+        }
+
+        #app .task_info .title {
+            padding-left: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        #app .task_info .img_right {
+            width: 15px;
+            height: 15px;
+        }
+
+        #app .task_info .maintenance_data {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #d9d9d9;
+            padding: 10px;
+            background: white;
+            border-top: 1px solid #d9d9d9;
+        }
+
+        #app .task_info textarea {
+            resize: none;
+            height: 80px;
+            font-size: 15px;
+        }
+
+        #app .regulations textarea {
+            resize: none;
+            font-size: 15px;
+        }
+
+        #app .task_info .maintenance_data p {
+            width: 80px;
+            margin-right: 15px;
+        }
+
+        #app .task_info .maintenance_data .image {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #26a2ff;
+        }
+
+        #app .task_info .maintenance_data .image .deleteImg {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            color: red;
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 5px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        #app .task_info .maintenance_data .image.add {
+            border: 1px solid #f1f1f1;
+        }
+
+        #app .task_info .maintenance_data .image img {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+        }
+
+        #app .task_info.signs .mint-cell-title {
+            flex: none!important;
+            width: 25%;
+        }
+
+        #app .task_info.signs .mint-cell-value {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #app .task_info .sign {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #app .task_info .sign img {
+            width: auto!important;
+            height: 45px!important;
+        }
+
+        #app .footer .save {
+            background: rgb(76, 175, 80);
+        }
+
+        #app .mint-popup {
+            width: 100%;
+        }
+
+        #app .mint-popup textarea {
+            resize: none;
+            height: 80px;
+            font-size: 15px;
+        }
+
+        #app .select .mint-cell-wrapper {
+            background: #ffffff;
+        }
+
+        #app .select .mint-field.is-textarea .mint-cell-title {
+            padding: 10px 0 10px 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <!-- <p>使用单位信息</p> -->
+
+        <div class="regulations">
+            <div class="required">
+                <span class="required_span">*</span>
+                <mt-field label="指令书编号" v-model="postTaskData.CommandNo" placeholder="请输入指令书编号"></mt-field>
+            </div>
+        </div>
+
+        <div class="regulations">
+            <div class="required">
+                <span class="required_span">*</span>
+                <mt-field label="指令书流水号" v-model="postTaskData.CommandNoNum" placeholder="请输入指令书流水号"></mt-field>
+                <div @click="openScan()" class="scan">扫码</div>
+            </div>
+        </div>
+
+        <div class="regulations" @click="openChooseTask">
+            <div class="required">
+                <span class="required_span">*</span>
+                <mt-field label="关联任务" disabled>{{'已关联任务('+taskL+')'}}
+                    <img class="img_right" src="./../../../../image/arrow.svg" alt="">
+                </mt-field>
+            </div>
+        </div>
+
+        <div class="regulations" v-if="!postTaskData.CommandStatus">
+            <div @click="selectRegulations(4)">
+                <div class="required">
+                    <span class="required_span">&nbsp;</span>
+                    <mt-field label="指令书模板" v-model="templates" disabled>
+                        <img class="img_right" src="./../../../../image/arrow.svg" alt="">
+                    </mt-field>
+                </div>
+            </div>
+        </div>
+
+        <div class="regulations">
+            <div class="company">
+                <mt-field style="margin-left: 11px;" label="使用单位名称" :value="postTaskData.CompanyUseName" disabled></mt-field>
+                <mt-field style="margin-left: 11px;" label="使用单位地址" :value="postTaskData.CompanyUseFullAddress" disabled></mt-field>
+            </div>
+        </div>
+
+        <div class="regulations">
+            <div class="required">
+                <span class="required_span">*</span>
+                <mt-field label="现单位名称" :value="postTaskData.CompanyUseNewName"></mt-field>
+            </div>
+        </div>
+
+        <div class="regulations">
+            <div>
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="设备描述" disabled></mt-field>
+                </div>
+            </div>
+            <mt-field v-model="postTaskData.CommandDeviceProblem" placeholder="请输入设备描述" type="textarea" rows="5"></mt-field>
+        </div>
+
+        <div class="regulations">
+            <div @click="selectRegulations(2)">
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="隐患描述" v-model="postTaskData.CommandProblemNames" disabled>
+                        <img class="img_right" src="./../../../../image/arrow.svg" alt="">
+                    </mt-field>
+                </div>
+            </div>
+            <mt-field v-model="postTaskData.CommandProblemIntro" placeholder="请输入隐患描述" type="textarea" rows="3"></mt-field>
+        </div>
+
+
+        <div class="regulations">
+            <div @click="selectRegulations(1)">
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="违反法律条款" v-model="postTaskData.CommandAgainstRulesNames" disabled>
+                        <img class="img_right" src="./../../../../image/arrow.svg" alt="">
+                    </mt-field>
+                </div>
+            </div>
+            <mt-field v-model="postTaskData.CommandAgainstRulesInfo" placeholder="请输入违反条例" type="textarea" rows="3"></mt-field>
+        </div>
+
+        <div class="regulations">
+            <div @click="selectRegulations(0)">
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="依据法律条款" v-model="postTaskData.CommandCcordingRulesNames" disabled>
+                        <img class="img_right" src="./../../../../image/arrow.svg" alt="">
+                    </mt-field>
+                </div>
+            </div>
+            <mt-field v-model="postTaskData.CommandCcordingRulesInfo" placeholder="请输入处罚根据条例" type="textarea" rows="3"></mt-field>
+        </div>
+
+        <!-- 违反法律条款 -->
+        <!-- 依据法律条款 -->
+        <!-- 隐患描述 -->
+        <!-- 整改措施 -->
+
+        <mt-popup v-model="examineValue" modal="true" position="bottom" popup-transition="popup-fade">
+
+            <div class="select">
+                <mt-checklist v-if="regulationsType == 1" align="right" v-model="violationValue" :options="violation"></mt-checklist>
+                <mt-checklist v-if="regulationsType == 0" align="right" v-model="penaltiesValue" :options="penalties"></mt-checklist>
+                <mt-checklist v-if="regulationsType == 2" align="right" v-model="problemValue" :options="problemList"></mt-checklist>
+                <mt-checklist v-if="regulationsType == 3" align="right" v-model="measuresValue" :options="measuresList"></mt-checklist>
+                <mt-radio v-if="regulationsType == 4" align="right" v-model="commandTemplateValue" :options="commandTemplateList"></mt-radio>
+            </div>
+
+
+        </mt-popup>
+
+        <div class="regulations">
+            <div @click="selectRegulations(3)">
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="整改措施" v-model="postTaskData.CommandChangedNames" disabled>
+                        <img class="img_right" src="./../../../../image/arrow.svg" alt="">
+                    </mt-field>
+                </div>
+            </div>
+            <mt-field v-model="postTaskData.CommandChangedInfo" placeholder="请输入整改措施" type="textarea" rows="5"></mt-field>
+        </div>
+        <div class="task_info">
+            <div ref="deadline" @click="changeDeadline()">
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="整改截止日期" placeholder="请选择截止日期" v-model="date" disabled></mt-field>
+                </div>
+            </div>
+            <mt-datetime-picker startDate="Thu Oct 12 2017 11:58:33 GMT+0800 (中国标准时间)" ref="deadline" v-model="deadlineData" @confirm="getDeadline"
+                type="date" year-format="{value} 年" month-format="{value} 月" date-format="{value} 日">
+            </mt-datetime-picker>
+        </div>
+        <div class="task_info">
+            <div class="maintenance_data">
+                <p>监察指令书</p>
+                <div class="image" v-if="checkResultCmdList.length!==0" v-for="(item,index) in checkResultCmdList">
+                    <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                    <div class="deleteImg" @click="deleteImg(checkResultCmdList,index)" :height="20" :width="20">
+                        <Icon :name="'icon-close'"></Icon>
+                    </div>
+                </div>
+                <div class="image add" @click="chooseCommandResultCmdList()" v-if="(checkResultCmdList.length!==2)">
+                    <Icon :name="'icon-add'" :width="50" :height="50"></Icon>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下达指令书内容显示 -->
+        <div>
+            <div class="task_info">
+                <mt-field label="单位意见" v-model="postTaskData.CompanyUseResulOpinion" placeholder="请输入单位意见" type="textarea" rows="4"></mt-field>
+            </div>
+            <div class="regulations">
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="单位负责人" v-model="postTaskData.CompanyUseConfirmMan" placeholder="请输入单位负责人"></mt-field>
+                </div>
+            </div>
+            <div class="regulations">
+                <div class="required">
+                    <span class="required_span">*</span>
+                    <mt-field label="联系电话" v-model="postTaskData.CompanyUseConfirmManPhone" placeholder="请输入负责人联系电话"></mt-field>
+                </div>
+            </div>
+            <div style="display:none;" class="task_info signs">
+                <mt-cell title="负责人签名">
+                    <div class="sign">
+                        <img v-if="postTaskData.CompanyUseConfirmSignPhoto" :src="postTaskData.CompanyUseConfirmSignPhotoPath" alt="" srcset="">
+                        <span v-if="!postTaskData.CompanyUseConfirmSignPhoto">请签名</span>
+                    </div>
+                    <mt-button size="small" type="primary" @click.native="openSign">签名</mt-button>
+                </mt-cell>
+            </div>
+        </div>
+
+        <div class="footer">
+            <mt-button type="primary" class="submit" @click="postTaskCommandInfoEdit(4)">提交</mt-button>
+        </div>
+
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+
+        var taskId = subei.getParam('taskId');
+        var taskIdx = subei.getParam('taskIdx');
+        var taskNo = subei.getParam('taskNo');
+        var companyUseID = subei.getParam('companyUseID');
+        var companyUseName = subei.getParam('companyUseName');
+        var companyUseFullAddress = subei.getParam('companyUseFullAddress');
+
+        var app = new Vue({
+            el: "#app",
+            data: {
+                date: '',
+                startDate: '',
+                taskL: 0,
+                measures: '',
+                checkResultPhotos: [],
+                checkResultCmdList: [],
+                postTaskData: {
+                    CompanyUseConfirmSignPhoto: '',
+                    CompanyUseConfirmSignPhotoPath: '',
+                    CommandDeviceProblem: '',
+                    CompanyUseNewName: '',
+                    CommandNoNum: ''
+                },
+                examineValue: false,
+                // regulationsData:[],//所有条例
+                penaltiesValue: [], //处罚条例
+                penalties: [],
+                violationValue: [], //违法条例
+                violation: [],
+
+                problemList: [], //隐患描述
+                problemValue: [],
+
+                measuresList: [],
+                measuresValue: [],
+
+                regulationsType: '',
+
+                deadlineData: '',
+                baseData: '',
+                commandTemplateData: [],
+                commandTemplateList: [],
+                commandTemplateValue: '',
+                templates: ''
+            },
+            mounted: function () {
+
+                this.initDate();
+
+            },
+            created: function () {
+
+
+                var t_data = this;
+
+                this.getCommandTemplateList();
+
+                this.getAllBaseData();
+
+                this.getTaskCommandInfo();
+
+
+
+                var date = new Date().getFullYear();
+
+                if (!this.postTaskData.CommandNo) {
+                    this.postTaskData.CommandNo = '[' + date + ']第（）号'
+                }
+
+                if (!this.postTaskData.CommandNoNum) {
+                    this.postTaskData.CommandNoNum = ''
+                }
+
+                // this.getSysRulesData();
+
+                d_addEventListener('chooseTask', function (data) {
+                    var items = JSON.parse(data.value.items);
+                    this.postTaskData.ListTaskCheck = items;
+                    this.taskL = items.length;
+                    this.countChooseTask(items);
+                    console.log('我是选择好的列表||' + JSON.stringify(t_data.postTaskData.ListTaskCheck));
+                }.bind(this));
+
+                d_addEventListener('signData', function (data) {
+                    var signObj = data.value.signObj;
+                    this.postTaskData['CompanyUseConfirmSignPhoto'] = signObj.name
+                    this.postTaskData['CompanyUseConfirmSignPhotoPath'] = signObj.photoUrl1
+
+
+                    console.log('我是接收广播的签名数据||' + JSON.stringify(signObj));
+
+                }.bind(this));
+
+            },
+
+            computed: {
+                checkResultPhotosStr: function () {
+
+                    var imgs = [];
+                    for (var item in this.checkResultPhotos) {
+                        if (this.checkResultPhotos[item].name) {
+                            imgs.push(this.checkResultPhotos[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+
+                },
+
+                checkResultCmdListStr: function () {
+
+                    var imgs = [];
+                    for (var item in this.checkResultCmdList) {
+                        if (this.checkResultCmdList[item].name) {
+                            imgs.push(this.checkResultCmdList[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+                }
+            },
+            methods: {
+                openSign: function () {
+                    openWin('sign_win', './../../../common/Signature/sign_win.html', {});
+                },
+                openScan: function () {
+
+                    var FNScanner = api.require('FNScanner');
+                    var t_data = this;
+
+                    var type = "device";
+                    FNScanner.openScanner({
+                        autorotation: true
+                    }, function (ret, err) {
+                        if (ret) {
+                            // alert('成功信息'+JSON.stringify(ret))
+                            if (ret.eventType == 'success') {
+                                var content = ret.content.split('-');
+                                if (content.length >= 2 && content[0] == '2') {
+                                    t_data.postTaskData.CommandNoNum = content[1];
+                                } else {
+                                    toastShow('无法识别条形码', 2000);
+                                }
+                            }
+
+                        } else {
+
+                        }
+                    });
+                },
+                countChooseTask: function (data) {
+
+                    console.log(data);
+
+                    if (data.length !== 0 && data) {
+                        var ids = [];
+                        for (var i = 0; i < data.length; i++) {
+                            ids.push(data[i].ID);
+                        }
+                        this.postTaskData.CommandTaskIDs = ids.join(',');
+                        this.taskL = data.length || 0;
+                    }
+
+                },
+
+                openChooseTask: function () {
+                    console.log('跳转页面之前||' + JSON.stringify(this.postTaskData.ListTaskCheck));
+                    openWin('taskChoose_win', './../add_instruct_taskChoose/taskChoose_win.html', {
+                        CommandTaskIDs: this.postTaskData.CommandTaskIDs,
+                        items: JSON.stringify(this.postTaskData.ListTaskCheck),
+                        companyUseID: companyUseID
+                    });
+                },
+
+                initPhotos: function (photosList) {
+
+                    if (photosList.CommandProblemPhotoListPath) {
+                        if (photosList.CommandProblemPhotoListPath.length > 0) {
+                            var photo = photosList.CommandProblemPhotoListPath;
+                            var photos = [];
+                            for (var i = 0; i < photo.length; i++) {
+                                var urlImg = (photo[i].url.indexOf('http://') > -1 ? photo[i].url : (base_url_photo + photo[i].url));
+                                photos.push({
+                                    name: photo[i].name,
+                                    photoUrl: urlImg,
+                                    photoUrl1: urlImg,
+                                    status: 2
+                                });
+                            };
+
+                            this.checkResultPhotos = photos;
+                            console.log('我是图片');
+                            console.log(JSON.stringify(photos));
+                        }
+                    }
+
+                    if (photosList.CommandPhotoListPath) {
+                        if (photosList.CommandPhotoListPath.length > 0) {
+                            var photo = photosList.CommandPhotoListPath;
+                            var photos = [];
+                            for (var i = 0; i < photo.length; i++) {
+                                var urlImg = (photo[i].url.indexOf('http://') > -1 ? photo[i].url : (base_url_photo + photo[i].url));
+                                photos.push({
+                                    name: photo[i].name,
+                                    photoUrl: urlImg,
+                                    photoUrl1: urlImg,
+                                    status: 2
+                                });
+                            };
+                            this.checkResultCmdList = photos;
+                            console.log(JSON.stringify(photos));
+                        }
+                    }
+
+                },
+
+                openPicker: function () {
+                    this.$refs.picker.open();
+                },
+
+                changeDeadline: function () {
+                    this.$refs.deadline.open();
+                },
+
+                checkTime: function (res) {
+
+                    var checkDate = Date.parse(res);
+                    var date = new Date(checkDate);
+                    var dates = date.toLocaleString();
+                    var index = dates.indexOf(' ');
+                    this.postTaskData.CommandResultDate = dates.substring(0, index).replace(/\//g, '-');
+                },
+
+                getDeadline: function (res) {
+
+                    var dates = res.toLocaleString();
+                    var index = dates.indexOf(' ');
+                    this.date = dates.substring(0, index).replace(/\//g, '-');
+
+                },
+
+                chooseCommandResultPhotos: function () {
+
+                    subei.upFile(this.checkResultPhotos, 2, 'CommandProblemPhoto', function (res) {
+
+                        this.checkResultPhotos = res;
+                        console.log(JSON.stringify(res));
+
+                    }.bind(this));
+
+                },
+
+                chooseCommandResultCmdList: function () {
+
+                    subei.upFile(this.checkResultCmdList, 2, 'CommandPhoto', function (res) {
+                        this.checkResultCmdList = res;
+                        console.log(JSON.stringify(res));
+
+                    }.bind(this));
+
+                },
+
+                deleteImg: function (photosList, i) {
+
+                    subei.alerts('您确认要删除吗', function () {
+                        photosList.splice(i, 1);
+                    }.bind(this));
+
+                },
+
+                getTaskCommandInfo: function () {
+
+                    // if(JSON.stringify(this.postTaskData)!=='{}'){
+                    //     console.log('已有数据');
+                    //     return;
+                    // }
+
+                    if (!taskId) {
+
+                        this.postTaskData.CommandNoNum = '';
+                        this.postTaskData.CompanyUseID = companyUseID;
+                        this.postTaskData.CompanyUseName = companyUseName;
+                        this.postTaskData.CompanyUseFullAddress = companyUseFullAddress;
+                        this.postTaskData.CompanyUseNewName = companyUseName;
+                        console.log('暂无指令ID');
+
+                        showLoader();
+                        apiAjax({
+                            url: "TaskCheck/GetAssociatedTaskkList?taskId=" + taskIdx,
+                            type: 'post',
+                            param: {}
+                        }, function (data) {
+
+                            hideLoader();
+                            if (data.length) {
+                                this.postTaskData['ListTaskCheck'] = data;
+                                this.taskL = data.length;
+                                this.countChooseTask(data);
+                            }
+
+                        }.bind(this));
+
+                        return;
+                    }
+
+                    var date = new Date("2000-01-01");
+
+                    showLoader();
+
+                    apiAjax({
+                        url: "Device/TaskCommandInfo/" + taskId,
+                        type: 'post',
+                        param: {}
+                    }, function (data) {
+                        hideLoader();
+                        console.log('我是任务ID' + taskId)
+                        console.log('我是任务详情' + JSON.stringify(JSON.stringify(data)))
+                        this.postTaskData = data;
+
+                        if (new Date(this.postTaskData.CommandResultDate) < date) {
+                            this.postTaskData.CommandResultDate = "";
+                        }
+                        if (new Date(this.postTaskData.CommandChangedEndDate) < date) {
+                            this.postTaskData.CommandChangedEndDate = "";
+                        } else {
+                            this.postTaskData.CommandChangedEndDate = this.postTaskData.CommandChangedEndDate.split('T')[0];
+                        }
+
+                        if (this.postTaskData.ListTaskCheck) {
+                            this.taskL = this.postTaskData.ListTaskCheck.length;
+                            this.countChooseTask(this.postTaskData.ListTaskCheck);
+                        }
+                        this.postTaskData.CompanyUseConfirmSignPhotoPath = (this.postTaskData.CompanyUseConfirmSignPhoto ? base_url_photo + this.postTaskData.CompanyUseConfirmSignPhotoPath : '')
+
+                        if (this.baseData) {
+
+                            this.problemValue = data.CommandProblemIDsArray;
+                            this.violationValue = data.CommandAgainstRulesIDsArray;
+                            this.penaltiesValue = data.CommandCcordingRulesIDsArray;
+                            this.measuresValue = data.CommandChangedIDsArray;
+
+                        }
+
+
+
+                        this.date = this.postTaskData.CommandChangedEndDate;
+
+                        //使用单位ID
+                        companyUseID = this.postTaskData.CompanyUseID;
+
+
+                        this.initPhotos(data);
+                    }.bind(this));
+
+                },
+
+                selectRegulations: function (status) {
+
+                    this.examineValue = true;
+                    this.regulationsType = status;
+
+                },
+
+                postTaskCommandInfoEdit: function (status) {
+
+                    var limitTime = new Date("2000-01-01");
+                    var date = new Date().getFullYear();
+
+                    this.postTaskData.CommandProblemPhotoList = this.checkResultPhotosStr;
+                    this.postTaskData.CommandPhotoList = this.checkResultCmdListStr;
+                    this.postTaskData.CommandChangedEndDate = this.date;
+
+                    // this.postTaskData.ListTaskCheck[0].ListTaskCheckLog = [];
+                    for (var i = 0; i < this.postTaskData.ListTaskCheck.length; i++) {
+                        if (this.postTaskData.ListTaskCheck[i].CheckResultPhotoList) {
+                            delete this.postTaskData.ListTaskCheck[i].CheckResultPhotoList;
+                        }
+                    }
+
+                    if (this.postTaskData.CommandNo == '[' + date + ']第（）号') {
+                        toastShow('请填写指令书编号！', 2000);
+                        return;
+                    }
+
+                    if (this.postTaskData.CommandNoNum == '') {
+                        toastShow('请填写指令书流水号！', 2000);
+                        return;
+                    }
+
+
+                    if (!this.postTaskData.CommandProblemIntro) {
+                        toastShow('请填写隐患描述！', 2000);
+                        return;
+                    }
+
+                    // if(!this.postTaskData.CommandProblemPhotoList){
+                    //     toastShow('请提交现场图片！',2000);
+                    //     return;
+                    // }
+
+                    if (!this.postTaskData.CommandAgainstRulesInfo) {
+                        toastShow('请输入违反条例', 2000);
+                        return;
+                    }
+
+                    if (!this.postTaskData.CommandDeviceProblem) {
+                        toastShow('请输入设备描述', 2000);
+                        return;
+                    }
+
+
+                    if (!this.postTaskData.CommandCcordingRulesInfo) {
+                        toastShow('请输入法律条款', 2000);
+                        return;
+                    }
+
+                    if (!this.postTaskData.CommandChangedInfo) {
+                        toastShow('请输入整改措施！', 2000);
+                        return;
+                    }
+
+                    if (!this.postTaskData.CommandChangedEndDate) {
+                        toastShow('请选择整改截止日期！', 2000);
+                        return;
+                    }
+
+                    if (new Date(this.postTaskData.CommandChangedEndDate) <= limitTime) {
+                        toastShow('选择时间不能小于"2000-01-01"', 2000);
+                        return;
+                    }
+
+                    // if(!this.postTaskData.CommandPhotoList){
+                    //     toastShow('请上传监察指令书！',2000);
+                    //     return;
+                    // }
+
+                    var phoneReg = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/;
+
+                    //if(!this.postTaskData.CompanyUseResulOpinion){
+                    //    toastShow('请输入单位意见！',2000);
+                    //    return;
+                    //}
+
+                    if (!this.postTaskData.CompanyUseConfirmMan) {
+                        toastShow('请填写单位联系人！', 2000);
+                        return;
+                    }
+
+                    if (!this.postTaskData.CompanyUseConfirmManPhone) {
+                        toastShow('请输入负责人联系电话！', 2000);
+                        return;
+                    }
+
+                    //if(this.postTaskData.CompanyUseConfirmManPhone && !phoneReg.test(this.postTaskData.CompanyUseConfirmManPhone)){
+                    //    toastShow('请输入正确的联系电话！',2000);
+                    //    return;
+                    //}
+
+                    console.log('我是要提交的数据');
+                    console.log(JSON.stringify(this.postTaskData));
+                    // return;
+
+                    subei.alerts('您确认要提交吗？', function () {
+
+                        this.postTaskData.CommandStatus = 1;
+                        showLoader();
+                        console.log('我是在提交指令传输的数据' + JSON.stringify(this.postTaskData))
+                        apiAjax({
+                            url: 'Device/TaskCommandInfoEdit',
+                            type: 'postJson',
+                            param: this.postTaskData
+                        }, function (data) {
+
+                            hideLoader();
+                            toastShow('操作成功！', 2000);
+                            d_sendEventExtra("task_submit_ok", {
+                                status: 'A1'
+                            });
+                            setTimeout(function () {
+                                closeWin('inspect_info_win');
+                                closeWin()
+                            }, 1500);
+
+                        }.bind(this));
+
+                    }.bind(this));
+
+                },
+                // http://app-lift2.subei88.com:8080/api/Common/GetAllBaseData
+
+                getAllBaseData: function () {
+
+                    var t_data = this;
+
+                    $.ajax({
+                        url: base_url_api + 'Common/GetAllBaseData',
+                        dataType: 'json',
+                        type: 'get',
+                        data: {},
+                        success: function (res) {
+
+                            if (res.status) {
+
+                                t_data.problemList = t_data.filiterData(res.info.ListCommandProblem);
+                                t_data.measuresList = t_data.filiterData(res.info.ListCommandChanged);
+                                t_data.violation = t_data.filiterData(res.info.ListCommandAgainstRules);
+                                t_data.penalties = t_data.filiterData(res.info.ListCommandCcordingRules);
+                                t_data.baseData = res.info
+                            }
+
+                            console.log(JSON.stringify(res))
+                        },
+                        error: function (err) {
+
+                        }
+                    })
+                },
+
+                getCommandTemplateList: function () {
+
+                    var t_data = this;
+
+                    $.ajax({
+                        url: base_url_api + 'Device/TaskCommandTemplateList',
+                        type: 'get',
+                        dataType: 'json',
+                        data: {},
+                        success: function (res) {
+
+                            t_data.commandTemplateData = res.info;
+
+                            var data = [{
+                                label: '不选',
+                                value: '0'
+                            }];
+
+                            for (var i = 0; i < res.info.length; i++) {
+
+                                data.push({
+                                    label: res.info[i].TemplateName,
+                                    value: String(res.info[i].ID)
+                                })
+
+                            }
+
+                            t_data.commandTemplateList = data;
+
+                            // alert(JSON.stringify(t_data.commandTemplateList))
+                            // console.log('这是最新的指令模板数据'+JSON.stringify(res));
+
+                        },
+                        error: function (err) {
+
+                        }
+
+                    })
+
+                },
+
+                filiterData: function (data) {
+
+                    var result = [];
+
+                    if (data == []) {
+
+                        return ''
+
+                    }
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        result.push({
+                            label: data[i].BaseName,
+                            value: data[i].ID,
+                            info: data[i].BaseIntro
+                        })
+
+                    }
+
+                    return result;
+
+                },
+
+                initDate: function () {
+
+                    var dateInit = new Date();
+
+                    var currentDate = dateInit.toLocaleDateString();
+
+                    this.date = currentDate.split('/').join('-');
+
+                    this.deadlineData = currentDate.split('/').join('-');
+
+                }
+
+
+            },
+            watch: {
+                'postTaskData.CompanyUseConfirmSignPhoto': function (val, vals) {
+                    console.log('CompanyUseConfirmSignPhoto 改变了。值是【' + val + '】')
+                },
+                violationValue: function () {
+
+                    if (!event) {
+                        return;
+                        //event.isTrusted
+                    }
+                    var name = String(this.violationValue);
+                    var nameList = name.split(',');
+                    var id = [];
+                    var result = ['《中华人民共和国特种设备安全法》 '];
+                    var label = [];
+
+                    for (var t = 0; t < this.violation.length; t++) {
+                        for (var i = 0; i < nameList.length; i++) {
+                            if (this.violation[t].value == nameList[i]) {
+                                label.push(this.violation[t].label);
+                                result.push(this.violation[t].info + (i == nameList.length - 1 ? '。' : '；'));
+                                id.push(this.violation[t].value);
+                            }
+                        }
+                    }
+
+                    if (result.length < 2) {
+                        result = [];
+                    }
+
+                    this.postTaskData.CommandAgainstRulesIDsArray = id;
+                    this.postTaskData.CommandAgainstRulesNames = label.join(',');
+                    this.postTaskData.CommandAgainstRulesInfo = result.join('');
+
+                },
+
+                penaltiesValue: function () {
+                    if (!event) {
+                        return;
+                    }
+                    var name = String(this.penaltiesValue);
+                    var nameList = name.split(',');
+                    var id = [];
+                    var result = ['《中华人民共和国特种设备安全法》 '];
+                    var label = [];
+                    for (var t = 0; t < this.penalties.length; t++) {
+                        for (var i = 0; i < nameList.length; i++) {
+                            if (this.penalties[t].value == nameList[i]) {
+                                label.push(this.penalties[t].label);
+                                result.push(this.penalties[t].info + (i == nameList.length - 1 ? '。' : '；'));
+                                id.push(this.penalties[t].value);
+                            }
+                        }
+                    }
+
+                    if (result.length < 2) {
+                        result = [];
+                    }
+                    this.postTaskData.CommandCcordingRulesIDsArray = id;
+                    this.postTaskData.CommandCcordingRulesNames = label.join(',');
+                    this.postTaskData.CommandCcordingRulesInfo = result.join('');
+
+                },
+
+                problemValue: function () {
+                    if (!event) {
+                        return;
+                    }
+                    var id = String(this.problemValue);
+                    var ids = id.split(',');
+                    var name = [];
+                    var result = [];
+
+                    for (var i = 0; i < this.problemList.length; i++) {
+                        for (var t = 0; t < ids.length; t++) {
+                            if (this.problemList[i].value == ids[t]) {
+                                name.push(this.problemList[i].label);
+                                result.push(this.problemList[i].info + (i == this.problemList.length - 1 ? '。' : '；'));
+                                // result.push(`${result.length + 1}、${this.problemList[i].info}`)
+                            }
+                        }
+                    }
+
+                    this.postTaskData.CommandProblemIDsArray = this.problemValue;
+                    this.postTaskData.CommandProblemNames = name.join(',');
+                    this.postTaskData.CommandProblemIntro = result.join('');
+
+                },
+
+                measuresValue: function () {
+                    if (!event) {
+                        return;
+                    }
+                    var id = String(this.measuresValue);
+                    var ids = id.split(',');
+                    var name = [];
+                    var result = [];
+
+                    for (var i = 0; i < this.measuresList.length; i++) {
+                        for (var t = 0; t < ids.length; t++) {
+                            if (this.measuresList[i].value == ids[t]) {
+                                name.push(this.measuresList[i].label);
+                                result.push(this.measuresList[i].info + (i == this.measuresList.length - 1 ? '。' : '；'));
+                                // result.push(`${result.length + 1}、${this.measuresList[i].info}`)
+                            }
+                        }
+                    }
+
+                    this.postTaskData.CommandChangedIDsArray = this.measuresValue;
+                    this.postTaskData.CommandChangedNames = name.join(',');
+                    this.postTaskData.CommandChangedInfo = result.join('');
+
+                },
+
+                commandTemplateValue: function () {
+
+                    var t_data = this;
+                    for (var i = 0; i < t_data.commandTemplateData.length; i++) {
+
+                        if (t_data.commandTemplateValue == t_data.commandTemplateData[i].ID) {
+                            t_data.templates = t_data.commandTemplateData[i].TemplateName;
+                            //  t_data.problemValue = t_data.commandTemplateData[i].CommandProblemIDsArray;
+                            //  t_data.violationValue = t_data.commandTemplateData[i].CommandAgainstRulesIDsArray;
+                            //  t_data.penaltiesValue = t_data.commandTemplateData[i].CommandCcordingRulesIDsArray;
+                            //  t_data.measuresValue = t_data.commandTemplateData[i].CommandChangedIDsArray;
+
+                            t_data.postTaskData.CommandProblemIDsArray = t_data.commandTemplateData[i].CommandProblemIDsArray;
+                            t_data.postTaskData.CommandAgainstRulesIDsArray = t_data.commandTemplateData[i].CommandAgainstRulesIDsArray;
+                            t_data.postTaskData.CommandCcordingRulesIDsArray = t_data.commandTemplateData[i].CommandCcordingRulesIDsArray;
+                            t_data.postTaskData.CommandChangedIDsArray = t_data.commandTemplateData[i].CommandChangedIDsArray;
+
+                            t_data.postTaskData.CommandProblemNames = t_data.commandTemplateData[i].CommandProblemNames;
+                            t_data.postTaskData.CommandAgainstRulesNames = t_data.commandTemplateData[i].CommandAgainstRulesNames;
+                            t_data.postTaskData.CommandCcordingRulesNames = t_data.commandTemplateData[i].CommandCcordingRulesNames;
+                            t_data.postTaskData.CommandChangedNames = t_data.commandTemplateData[i].CommandChangedNames;
+
+                            t_data.postTaskData.CommandProblemIntro = t_data.commandTemplateData[i].CommandProblemIntro;
+                            t_data.postTaskData.CommandAgainstRulesInfo = t_data.commandTemplateData[i].CommandAgainstRulesInfo;
+                            t_data.postTaskData.CommandCcordingRulesInfo = t_data.commandTemplateData[i].CommandCcordingRulesInfo;
+                            t_data.postTaskData.CommandChangedInfo = t_data.commandTemplateData[i].CommandChangedInfo;
+                        }
+                    }
+
+                    if (t_data.commandTemplateValue == 0) {
+                        t_data.templates = '不选';
+                        t_data.problemValue = [];
+                        t_data.violationValue = [];
+                        t_data.penaltiesValue = [];
+                        t_data.measuresValue = [];
+                    }
+
+                }
+            }
+        })
+    })
+</script>
+
+</html>

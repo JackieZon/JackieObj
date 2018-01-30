@@ -1,0 +1,136 @@
+<!DOCTYPE html >
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <title>手写签字</title>
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <script src="./../../../script/jquery.js"></script>
+    <script type="text/javascript" src="./SignJS/jSignature.min.js"></script>
+    <script src="./SignJS/jSignature.min.js"></script>
+    <style>
+        #app{
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #app .upper{
+            margin-top: 150px;
+            background: #eee;
+        }
+        #app .lower{
+            flex: 1;
+            background: #fff;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+        }
+        #app .lower .image{
+            width: 100%;
+            padding:20px;
+            box-sizing: border-box;
+        }
+        #app .lower .image img{
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="upper">
+            <div id="signature" style="width: 100%;height: 200px;"></div>
+        </div>
+        <div class="lower">
+            <mt-button size="normal" @click.native="reset()">清除签名</mt-button>
+        </div>
+        <div class="footer">
+            <mt-button type="primary" @click.native="postSign">提交</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script src="./../../../script/ajaxToAPICoud.js"></script>
+<script>
+    subei.ready(function () {
+        var app = new Vue({
+            el: "#app",
+            data: {
+                pngBase64: '',
+            },
+            mounted: function(){
+                var dHeight = "200px";
+                var dWidth = document.body.scrollWidth;
+                $("#signature").jSignature({
+                    height: dHeight,
+                    width: dWidth,
+                    color:"#000",
+                    lineWidth:2
+                }); //初始化调整手写屏大小
+            },
+            methods: {
+                jSignatureTest: function() {
+                    var $sigdiv = $("#signature");
+                    var datapair = $sigdiv.jSignature("getData", "default")
+                    console.log(datapair);
+                    var defalutImg = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXcAAAEsCAYAAAA4ifPKAAAKeElEQVR4Xu3UAQ3DQAwEwYRMWQR9YBRMy+KkX00IfDy29r58BAgQIJATuHMTGYgAAQIELnF3BAQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7sGlGokAAQLi7gYIECAQFBD34FKNRIAAAXF3AwQIEAgKiHtwqUYiQICAuLsBAgQIBAXEPbhUIxEgQEDc3QABAgSCAuIeXKqRCBAgIO5ugAABAkEBcQ8u1UgECBAQdzdAgACBoIC4B5dqJAIECIi7GyBAgEBQQNyDSzUSAQIExN0NECBAICgg7oOlPs/zGzzjCQKnCHzf9/2c8rOn/qe4DzYn7gNkT5wkIO6DbYn7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgLiPta3HsECBAYCIj7ANkTBAgQWAuI+1rcewQIEBgIiPsA2RMECBBYC4j7Wtx7BAgQGAiI+wDZEwQIEFgL/AENTwsthPUjeAAAAABJRU5ErkJggg=='
+                    if(datapair==defalutImg){
+                        toastShow('请签名！')
+                        return
+                    }
+                    this.pngBase64 = datapair;
+                    var i = new Image();
+                    i.src = datapair
+                    $(".image").html($(i))
+                    // $(i).appendTo($("#image")) // append the image (SVG) to DOM.
+                },
+                reset: function() {
+                    var $sigdiv = $("#signature");
+                    $sigdiv.jSignature("reset");
+                    $("#image img").remove();
+                },
+                
+                postSign: function (){
+
+                    this.jSignatureTest()
+                    
+                    var t_data = this;
+                    var param = {
+                        base64str: t_data.pngBase64
+                    }
+                    subei.alerts(`确认提交吗？`, function () {
+
+                        apiAjax({
+                            type: 'post',
+                            url: base_url_photo + 'Common/UploadBase64Photo?type=TaskCommandConfirmSign',
+                            param: param
+                        }, function (ret) {
+
+                            console.log('**********我是上传图片后返回的数据*********');
+                            console.log(JSON.stringify(ret));
+                            toastShow('提交成功！',2000);
+                            setTimeout(function (){closeWin()},1500);
+                            d_sendEventExtra('signData', {signObj: { photoUrl: ret.path, photoUrl1: base_url_photo + ret.path, status: 2, name: ret.name } })
+                            
+
+                        });
+
+                    }.bind(this));
+
+                },
+            }
+        })
+    })
+</script>
+
+</html>

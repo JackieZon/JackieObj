@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="./../../../css/base.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <style>
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <device-list v-for="(item,index) in searchList" :key="index" :item="item" state="1" @click.native="choose(item)"></device-list>
+        <no-data :item="searchList" :load="getDeviceList"></no-data>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+        new Vue({
+            el: '#app',
+            data: {
+                // searchList: [{ name: 'tomy' }, { name: 'tomy' }, { name: 'tomy' }],
+                // filterDevice: false,
+                searchValue: {
+                    PageSize: 10,
+                    PageIndex: 1,
+                    RowCount: 0,
+                    TenanceStatus: -1,
+
+                    // 搜索参数
+                    DeviceUseName: '',
+                    DeviceRegNo: '',
+                    DeviceCertNo: '',
+                    DeviceType1: '',
+                    DeviceStatus: '',
+                    DeviceFullAddress: '',
+                    DeviceArea4: ''
+                    DeviceUseID: '',
+
+
+                },
+                searchList: []
+            },
+            mounted: function (){
+                subei.getDataInit(this, function () {
+
+                    this.searchValue.keyword = '';
+                    this.getDeviceList();
+
+                }.bind(this));
+
+                d_addEventListener('search',function(res){
+                    var data = JSON.parse(res.value.data);
+
+                    for(var i in data){
+                        this.searchValue[i] = data[i];
+                    };
+
+                    this.searchValue.PageSize = 10;
+                    this.searchValue.PageIndex = 1;
+                    this.searchList = [];
+                    this.getDeviceList();
+
+                }.bind(this));
+
+
+                // d_addEventListener('filter_device', function (res) {//添加任务保存、提交完成后返回列表进行刷新
+
+                //     this.filterDevice = res.value.filterDevice;
+
+                // }.bind(this));
+            },
+            methods: {
+                openDeviceInfo: function (item) {
+                    openWin('device_info_win', './../../common/device_info_1_2_3/device_info_win.html', {deviceId: item.ID});
+                },
+                getDeviceList: function () {
+
+                    var param = this.searchValue;
+                    showLoader();
+                    // alert(JSON.stringify(param))
+                    console.log('请求数据11'+JSON.stringify(param))
+                    // { url: 'Device/Device?PageSize='+ param.PageSize +'&PageIndex='+param.PageIndex, type: 'post', param: param }
+                    apiAjax({ url: 'Device/Device', type: 'post', param: param }, function (data, total) {
+                        hideLoader();
+                        this.searchList = this.searchList.concat(data)
+                        this.searchValue.RowCount = total || 0;
+
+                        console.log('这是我要的列表数据' + JSON.stringify(this.searchList))
+
+                    }.bind(this));
+
+                },
+                choose: function(item){
+                    d_sendEventExtra('device',{
+                        DeviceName: item.DeviceName,
+                        DeviceCertNo: item.DeviceCertNo,
+                        DeviceModel: item.DeviceModel,
+                        DeviceID: item.ID,
+                        item: item
+                    })
+                    setTimeout(function(){
+                        closeWin('device_list_win');
+                    },1000)
+                }
+            }
+        })
+    });
+
+</script>
+
+</html>

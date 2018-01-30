@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+</head>
+
+<body>
+    <div class="header" ref="header" id="header">
+        <mt-header title="已选择列表">
+            <div slot="left">
+                <mt-button icon="back" onclick="api.closeWin();"></mt-button>
+            </div>
+            <span slot="right" :name="'icon-add'" :width="28" :height="28" @click="chooseDevice()">选择关联</span>
+        </mt-header>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+
+        new Vue({
+            el: "#header",
+            data: {
+                deviceId: '',
+                searchStatus:'0'
+            },
+            mounted: function () {
+
+                openFrame('cDeviceList_frm', './cDeviceList_frm.html', {ListDevice: subei.getParam('ListDevice'),CompanyUseID:subei.getParam('CompanyUseID')});
+
+            },
+            methods: {
+                chooseDevice: function(){
+                    openWin('device_list_win','./../chooseDevice/device_list_win.html',{CompanyUseID:subei.getParam('CompanyUseID')})
+                }
+            }
+
+        })
+    })
+
+</script>
+
+</html>

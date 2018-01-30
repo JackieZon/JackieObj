@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <title>找回密码</title>
+    <style>
+        #app{
+            height: 100%;
+        }
+        .lower{
+            box-sizing: border-box;
+            padding: 15px 0;
+        }
+        .lower .item{
+            box-sizing: border-box;
+            padding-bottom: 15px;
+        }
+        .lower .icon{
+            color: #26a2ff;
+            margin-right: 5px;
+        }
+        .mint-cell-title{
+            display: flex;
+            align-items: center;
+        }
+        .mint-cell-mask{
+            display: none!important;
+        }
+        .mint-cell-wrapper{
+            background-image: none!important;
+        }
+        .mint-cell:last-child{
+            background-image: none!important;
+        }
+
+        .headImg{
+            color:#fff;
+            box-sizing: border-box;
+            padding: 1rem 1.5rem;
+            width:100%;
+            background: linear-gradient(270deg,#37B9FE,#27c5fd 25%,#4e8efe);
+            display: flex;
+            justify-content: center;
+        }
+        .headImg .head{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .headImg .head .img{
+            width: 5rem;
+            height: 5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #26a2ff;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 6px solid rgba(255,255,255,0.35);
+        }
+        .headImg .head .img img{
+            width: 100%;
+            background: rgba(255,255,255,0.8);
+        }
+        .info{
+            box-sizing: border-box;
+            padding: 10px 15px;
+            background: #fff;
+            height: 100%;
+        }
+        .info .intro{
+            margin-top: 15px;
+            text-indent:2em;
+        }
+        #app .mint-button{
+            height: 40px;
+        }
+        #app .mint-button .mint-button-text{
+            font-size: 16px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div class="headImg">
+            <div class="head">
+                <div class="img">
+                    <img src="./../../../icon/img/app.png" alt="">
+                </div>
+                <div class="name">{{'系统'}}</div>
+            </div>
+        </div>
+        <div class="lower">
+            <mt-field label="手机号" v-model="userPhone" placeholder="请输入用户名称"></mt-field>
+            <mt-field type="password" label="密码" v-model="pwd" placeholder="请输入新密码"></mt-field>
+            <mt-field label="验证码" v-model="code" placeholder="验证码">
+                <mt-button type="primary" v-if="time <= 0 " @click.native="get_code">发送验证码</mt-button>
+                <mt-button type="primary" v-if=" time > 0 " disabled>已发送({{ time }})</mt-button>
+            </mt-field>
+        </div>
+        <div class="footer" id="footer">
+            <mt-button type="primary" @click.native="changePwd">提交</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function(){
+        new Vue({
+            el:'#app',
+            data:{
+                userPhone:'',
+                pwd:'',
+                code:'',
+                time:0
+            },
+            methods:{
+                get_code: function (){
+
+                    var t_data = this;
+
+                    var phoneTest = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/;
+
+                    var t_url = 'Common/GetSmsCode?smsTel=' + this.userPhone + '&smsType=' + 'pwd';
+
+                    if(!t_data.userPhone){
+
+                        api.toast({ msg:'请输入手机号码！' });
+                        return;
+                    }
+
+                    if(!phoneTest.test(t_data.userPhone)){
+                        api.toast({ msg:'请输入有效的手机号码！' });
+                        return;
+                    }
+
+                    t_data.time = 60;
+                    
+                    showLoader();
+                    $.ajax({
+                        type: "get",
+                        url: base_url_api + t_url,
+                        dataType: "json",
+                        data: {},
+                        success: function (data) {
+                            hideLoader();
+                            if(data.status){
+                                toastShow(data.info);
+                            }else{
+                                toastShow(data.info);
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            hideLoader();
+                            alert(JSON.stringify(XMLHttpRequest));
+                        }
+                    });
+
+                    var timeOut = window.setInterval(function (){
+
+                        t_data.time--;
+
+                        if(t_data.time <= 0){
+
+                            window.clearInterval(timeOut);
+
+                        }
+
+                    },1000)
+
+                },
+
+                changePwd: function (){
+
+                    var t_data = this;
+
+                    if (!t_data.pwd) {
+                        toastShow("请输入新密码!", 2000);
+                        return;
+                    }
+
+                    if(t_data.pwd.length < 6){
+                        toastShow("密码不能小于6位!", 2000);
+                        return;
+                    }
+
+
+                    if (t_data.pwd.length > 12) {
+                        toastShow("密码请勿大于12位!", 2000);
+                        return;
+                    }
+
+                    if (!t_data.code) {
+                        toastShow("请输入验证码!", 2000);
+                        return;
+                    }
+
+                    showLoader();
+                    apiAjax({url:'Member/MemberUpdate_Pwd?userPhone='+this.userPhone+'&userPwd='+this.pwd+'&smsCode='+this.code,type:'post',param:{}},function(data,total){
+
+                        hideLoader();
+                        toastShow("修改成功!", 2000);
+                        console.log(JSON.stringify(data));
+
+                    }.bind(this));
+
+                }
+            }
+        });
+    });
+</script>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <script src="./../../../../script/rem.js"></script>
+    <style>
+        #app { background: #f5f5f5;}
+        .new { color:  #1296db; }
+        #app p {font-size: 16px;}
+        #app img { width: 16px; height: 16px; padding-right: 10px; }
+        #app .titles {width: 100%; display: flex; justify-content: center; color: #26a2ff; position: relative; }
+        #app .titles { line-height: 0.8rem; font-size: 16px; }
+        #app .titles .choose { position: absolute; right: 0.4rem; line-height: 0.8rem; }
+
+        #app .regulations{ margin-top: 10px; }
+
+        #app .device_info { margin-top: 10px; background: #fff;}
+         #app .device_info .company_title{ background: #fff; text-align: center; }
+                #app .device_info .company_title p{ line-height: 45px; color: #26a2ff; font-size: 17px; border-top: 1px solid #d9d9d9; }
+
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+            #app .record .record_list .area { display: flex; align-items: center; }
+                /* #app .record .record_list .area .area_title { width: 145px; } */
+                    #app .record .record_list .area .area_content { font-size: 14px; }
+        #app .task_action { margin-top: 10px; }
+            #app .task_action .title{ padding-left: 10px; font-size: 12px; color: #888; }
+        #app .record .record_list img { width: 25px; height: 25px; padding-right: 10px; }
+            #app .record .record_list .record_content { display: flex; justify-content: space-between;}
+            #app .record .record_list p { font-size: 14px; line-height: 30px; display: flex; align-items: center; }
+
+             #app textarea{ resize: none; height: 0px; padding-top: 22px; padding-bottom: 45px; }
+        #app .inspect_data { padding-top: 10px; }
+        #app .inspect_content { margin-top: 10px; }
+            #app .inspect_content .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d9d9d9; padding: 10px;  background: white; border-top: 1px solid #d9d9d9;}
+                #app .inspect_content .maintenance_data p { width:80px; margin-right: 15px; }
+                #app .inspect_content .maintenance_data .image {position: relative; width: 80px; height: 80px; margin: 5px; display: flex;justify-content: center;align-items: center; color: #26a2ff; }
+                #app .inspect_content .maintenance_data .image .deleteImg{position: absolute;top: 2px;right: 2px;color: red;background: rgba(255,255,255,0.65);border-radius: 5px;display: flex;justify-content: flex-end;align-items: center;}
+                #app .inspect_content .maintenance_data .image.add{border: 1px solid #f1f1f1;}
+                    #app .inspect_content .maintenance_data .image img{ width: 100%; height: 100%; padding: 0; }
+
+
+
+        #app .but { position: fixed; bottom: 0px; right: 0px; width: 96%; padding: 2%; background: white; }
+
+
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+
+        <div class="company" v-cloak>
+            <ul class="record">
+                <li class="record_list">
+                    <div class="titles">
+                        <p style="font-size: 16px;">使用单位</p>
+                        <div class="choose" @click="openMember">{{(postData.CompanyUseID==0?'选择':'清除')}}</div>
+                    </div>
+                    <mt-field label="使用单位" :readonly="true" v-model="postData.CompanyUseName" placeholder="请选择使用单位"></mt-field>
+                </li>
+            </ul>
+        </div>
+
+        <div class="regulations" @click="openDevice">
+            <div class="required">
+                <mt-field label="关联设备" disabled>{{'已关联设备('+ListDevice.length+')'}}<img class="img_right" src="./../../../../image/arrow.svg" alt=""></mt-field>
+            </div>
+        </div>
+
+        <div class="inspect_content">
+            <mt-field label="上级主管部门" disabled>
+                <select style="width: 100px; background: white; border: 0px;" v-model="mangerDept">
+                    <option v-if="mangerDept == '0'" :value="0">请选择</option>
+                    <option v-for="item in mangerDeptList" v-bind:value="item.ID">
+                        {{ item.DeptName }}
+                    </option>
+                </select>
+            </mt-field>
+
+            <mt-field label="主管人员" disabled>
+                <select style="width: 100px; background: white; border: 0px;" v-model="mangerUser">
+                    <option v-if="mangerUser == '0'" :value="0">请选择</option>
+                    <option v-for="item in mangerUserList" v-if="item.UserDeptID == mangerDept" v-bind:value="item.ID">
+                        {{ item.UserNickName }}
+                    </option>
+                </select>
+            </mt-field>
+        </div>
+
+        <div class="task_action">
+            <p class="title">处理措施</p>
+            <mt-radio v-model="postData.CheckResulTreatment" :options="['下达指令书', '直接封查']"></mt-radio>
+        </div>
+
+        <div class="inspect_content">
+            <div class="maintenance_data">
+                <p>现场图片</p>
+                <div class="image" v-if="checkResultPhotos.length!==0" v-for="(item,index) in checkResultPhotos">
+                    <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                    <div class="deleteImg" @click="deleteImg(checkResultPhotos,index)" :height="20" :width="20">
+                        <Icon :name="'icon-close'"></Icon>
+                    </div>
+                </div>
+                <div class="image add" @click="chooseCheckResultPhotos()" v-if="(checkResultPhotos.length!==2)">
+                    <Icon :name="'icon-add'" :width="50" :height="50"></Icon>
+                </div>
+            </div>
+        </div>
+
+        <div class="inspect_content">
+            <mt-field label="反馈说明" v-model="postData.CheckResultIntro" placeholder="请输入反馈说明" type="textarea" rows="4" ></mt-field>
+            <div style="width: 100%; height: 70px;"></div>
+        </div>
+
+        <div class="but">
+            <mt-button type="primary" size="large" @click="postTaskCheckSumbit">提交</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+
+        var deviceId = subei.getParam('deviceId');
+        var taskId = subei.getParam('taskId');
+        var companyId = subei.getParam('companyId');
+        var date = new Date();
+        var addDate = date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate();
+
+        new Vue({
+            el: "#app",
+            data: {
+                checkResultPhotos: [],
+                action:'',
+                companyInfo:{},
+                select:'下达指令书',
+                deviceInfo:{},
+                mangerDeptList:[],
+                mangerDept:'0',
+                mangerUserList:[],
+                mangerUser:'0',
+                ListDevice: [],
+                postData:{
+                    "DeviceStatusName": "",
+                    "CheckResulTreatmentName": "",
+                    "DeviceNo": "",
+                    "DeviceRegNo": "",
+                    "DeviceStatus": 0,
+                    "DeviceModel": "",
+                    "DeviceRegStatus": 0,
+                    "DeviceProduceNo": "",
+                    "DeviceProduceDate": "",
+                    "DeviceIndexesID": "",
+                    "DeviceCertNo": "",
+                    "DeviceCertDate": "",
+                    "CommandStatus": 0,
+                    "CommandAuditMan1": 0,
+                    "DeviceAreaName4": "",
+                    "DeviceNextTestDate": "",
+                    "DeviceUseName": "",
+                    "DeviceLastTestDate": "",
+                    "CheckResultPhotoListPath": [
+                        {}
+                    ],
+                    "TrackResultPhotoListPath": [
+                        {}
+                    ],
+                    "CheckResultCmdListPath": [
+                        {}
+                    ],
+                    "ListTaskCheckLog": [
+                        {
+                        "ID": 0,
+                        "TaskCheckID": 0,
+                        "TaskCheckLogDate": "",
+                        "TaskCheckLogActive": "",
+                        "TaskCheckLogMan": 0,
+                        "TaskCheckLogManName": "",
+                        "TaskCheckLogManPhone": "",
+                        "TaskCheckLogLng": "",
+                        "TaskCheckLogLat": "",
+                        "TaskCheckDeptID": 0,
+                        "TaskCheckDeptName": "",
+                        "TaskCheckStatus": 0,
+                        "TaskCheckStatusName": "",
+                        "TaskCheckAuditIntro": ""
+                        }
+                    ],
+                    "ListTaskTrack": [
+                        {
+                        "TrackResultPhotoListPath": [
+                            {}
+                        ],
+                        "ID": 0,
+                        "TaskCheckID": 0,
+                        "TrackIntro": "",
+                        "TrackResultEndDate": "",
+                        "TrackAssignDeptID": 0,
+                        "TrackAssignDeptName": "",
+                        "TrackAssignManIDs": "",
+                        "TrackAssignManNames": "",
+                        "TrackReceiveManID": 0,
+                        "TrackReceiveManName": "",
+                        "TrackReceiveDate": "",
+                        "TrackResultDate": "",
+                        "TrackResultManID": 0,
+                        "TrackResultManName": "",
+                        "TrackResultIntro": "",
+                        "TrackResultPhotoList": "",
+                        "TrackAddDate": "",
+                        "TrackAddMan": 0,
+                        "TrackAddManName": "",
+                        "TrackAddDeptID": 0,
+                        "TrackAddDeptName": "",
+                        "TrackStatus": 0
+                        }
+                    ],
+                    "CheckTypeName": "",
+                    "CheckStatusName": "",
+                    "TrackStatusName": "",
+                    "DeviceOldStatusName": "",
+                    "DeviceNewStatusName": "",
+                    "CheckManIDsArray": [
+                        0
+                    ],
+                    "TrackAssignManIDsArray": [
+                        0
+                    ],
+                    "CheckAgainstRulesIDsArray": [
+                        0
+                    ],
+                    "CheckCcordingRulesIDsArray": [
+                        0
+                    ],
+                    "CheckChangedIDsArray": [
+                        0
+                    ],
+                    "CheckResultIDsArray": [
+                        0
+                    ],
+                    "_CheckStatusTarget": 0,
+                    "_TrackingProgress": "",
+                    "ID": 0,
+                    "CheckNo": "",
+                    "CheckIntro": "",
+                    "CheckResultPhotoList": "",
+                    "CheckResultCmdList": "",
+                    "CheckResultAttachment": "",
+                    "CheckResultIDs": "",
+                    "CheckResultNames": "",
+                    "CheckResultIntro": "",
+                    "CheckResulTreatmentID": 0,
+                    "CheckResulTreatment": "下达指令书",
+                    "CheckChangedIDs": "",
+                    "CheckChangedNames": "",
+                    "CheckChangedInfo": "",
+                    "CheckChangedEndDate": "",
+                    "CheckResulOpinion": "",
+                    "CheckResultDate": "",
+                    "CheckResultEndDate": "",
+                    "DeviceID": 0,
+                    "DeviceName": "",
+                    "DeviceTypeFullName": "",
+                    "DeviceFullAddress": "",
+                    "DeviceOldStatus": 0,
+                    "DeviceNewStatus": 0,
+                    "CompanyUseID": 0,
+                    "CompanyUseName": "",
+                    "CompanyUseFullAddress": "",
+                    "CompanyUseConfirmMan": "",
+                    "CompanyUseConfirmManPhone": "",
+                    "AgencyID": 0,
+                    "AgencyName": "",
+                    "AgencyFullAddress": "",
+                    "CheckTypeID": 0,
+                    "CheckSourceTypeID": 0,
+                    "CheckDeptID": 0,
+                    "CheckDeptName": "",
+                    "CheckManIDs": "",
+                    "CheckManNames": "",
+                    "CheckExecDate": "",
+                    "CheckExecManID": 0,
+                    "CheckExecManName": "",
+                    "CheckAddDate": "",
+                    "CheckAddMan": 0,
+                    "CheckAddManName": "",
+                    "CheckAddDeptID": 0,
+                    "CheckAddDeptName": "",
+                    "CheckAuditMan": 0,
+                    "CheckAuditManName": "",
+                    "CheckAuditIntro": "",
+                    "CheckAuditDate": "",
+                    "CheckStatus": 0,
+                    "CheckAgainstRulesIDs": "",
+                    "CheckAgainstRulesNames": "",
+                    "CheckAgainstRulesInfo": "",
+                    "CheckCcordingRulesIDs": "",
+                    "CheckCcordingRulesNames": "",
+                    "CheckCcordingRulesInfo": "",
+                    "CheckSignLng": "",
+                    "CheckSignLat": "",
+                    "TaskCheckStatus": 0,
+                    "CommandID": 0,
+                    "CommandNo": "",
+                    "TaskCheckTrackID": 0,
+                    "TrackIntro": "",
+                    "TrackResultEndDate": "",
+                    "TrackAssignDeptID": 0,
+                    "TrackAssignDeptName": "",
+                    "TrackAssignManIDs": "",
+                    "TrackAssignManNames": "",
+                    "TrackReceiveManID": 0,
+                    "TrackReceiveManName": "",
+                    "TrackReceiveDate": "",
+                    "TrackResultDate": "",
+                    "TrackResultManID": 0,
+                    "TrackResultManName": "",
+                    "TrackResultIntro": "",
+                    "TrackResultPhotoList": "",
+                    "TrackAddDate": "",
+                    "TrackAddMan": 0,
+                    "TrackAddManName": "",
+                    "TrackAddDeptID": 0,
+                    "TrackAddDeptName": "",
+                    "TrackStatus": 0
+                }
+
+            },
+            mounted: function () {
+
+                var t_data = this;
+
+                this.action = subei.getParam('action');
+
+                this.postData.CompanyUseID = (companyId ? companyId : 0); //存入单位ID
+
+                this.postData.DeviceID = (deviceId ? deviceId : 0) //存入设备ID
+
+                this.getMangerDeptList();
+
+                if (this.action == 'device'){
+                    this.getDeviceInfo();
+                }
+
+                d_addEventListener('member',function(res){
+                    console.log('选择的使用单位↓')
+                    console.log(JSON.stringify(res.value.item))
+                    var data = res.value.item
+                    this.postData.CompanyUseID = data.ID
+                    this.postData.CompanyUseName = data.UseName
+                    this.postData.CompanyUseFullAddress = data.UseFullAddress
+                    this.postData.CompanyUseConfirmMan = data.UseContactMan
+                    this.postData.CompanyUseConfirmManPhone = data.UseContactManTel
+                }.bind(this))
+
+                d_addEventListener('cDeviceList',function(res){
+                    console.log('选择的设备列表↓')
+                    console.log(JSON.stringify(res.value.list))
+                    this.ListDevice = res.value.list
+                }.bind(this))
+
+            },
+            methods: {
+                openDevice: function(){
+                    if(!this.postData.CompanyUseName){
+                        toastShow('请选择使用单位！', 2000)
+                        return
+                    }
+                    openWin('cDeviceList_win','./../chooseDeviceList/cDeviceList_win.html',{ListDevice: this.ListDevice,CompanyUseID:this.postData.CompanyUseID})
+                },
+                openMember: function(){
+                    if(this.postData.CompanyUseID){
+                        this.postData.CompanyUseID = 0;
+                        this.postData.CompanyUseName = '';
+                        this.postData.CompanyUseFullAddress = '';
+                        this.postData.CompanyUseConfirmMan = '';
+                        this.postData.CompanyUseConfirmManPhone = '';
+                        
+                        this.ListDevice=[];
+                        return;
+                    }
+                    openWin('company_list_win','./../../chooseMember/company_list_win.html')
+                },
+                chooseCheckResultPhotos: function () {
+
+                    // subei.upFile(this.checkResultPhotos, 2, 'CheckResult', function(res){
+                    subei.upFile(this.checkResultPhotos, 2, 'CheckResult', function(res){
+
+                        this.checkResultPhotos = res;
+                        console.log(JSON.stringify( res));
+
+                    }.bind(this));
+
+                },
+                deleteImg: function (photosList,i) {
+
+                    subei.alerts('您确认要删除吗', function () {
+                        photosList.splice(i, 1);
+                    }.bind(this));
+
+                },
+                getCompanyInfo: function (){
+                    showLoader();
+                    apiAjax({ url: 'CompanyUse/CompanyUse/' + companyId, type: 'post', param:{} }, function (data, total) {
+
+                        hideLoader();
+
+                        this.companyInfo = data;
+
+                        //使用单位信息
+                        this.postData.CompanyUseName = data.UseName;
+
+                        this.postData.CompanyUseFullAddress = data.UseFullAddress;
+
+                        this.postData.CompanyUseConfirmMan = data.UseContactMan;
+
+                        this.postData.CompanyUseConfirmManPhone = data.UseContactManTel;
+
+                        console.log('这是单位详情数据' + JSON.stringify(data))
+
+                    }.bind(this));
+
+                },
+                getDeviceInfo: function (){
+                    apiAjax({url:"Device/Device/" + deviceId,type:'post',param:{}},function(data,total){
+
+                        this.deviceInfo = data;
+
+                        //设备信息
+                        this.postData.DeviceName = data.DeviceName;
+
+                        this.postData.DeviceTypeFullName = data.DeviceTypeFullName;
+
+                        this.postData.DeviceFullAddress  = data.DeviceFullAddress;
+
+                        console.log('任务提交页面的设备详情数据'+JSON.stringify(data));
+
+                    }.bind(this))
+                },
+                getMangerDeptList: function (){ //上级部门
+                    apiAjax({url:'TaskCheck/GetMangerDeptList',type:'post',param:{}},function(data,total){
+
+                        console.log('这是上级部门'+JSON.stringify(data));
+
+                        this.mangerDeptList = data;
+
+                        this.getMangerUserList();
+
+                    }.bind(this))
+                },
+                getMangerUserList: function (){ //上级部门
+                    apiAjax({url:'TaskCheck/GetMangerUserList',type:'post',param:{}},function(data,total){
+
+                        console.log('这是上级部门的关联任务'+JSON.stringify(data));
+
+                        this.mangerUserList = data;
+
+                    }.bind(this));
+                },
+                postTaskCheckSumbit: function (){
+                    // /api/TaskCheck/TaskCheckSumbit
+                    if(!this.postData.CompanyUseName){
+                        toastShow('请选择使用单位！', 2000)
+                        return
+                    }
+                    // if(this.ListDevice.length==0){
+                    //     toastShow('请关联设备！', 2000)
+                    //     return
+                    // }
+                    if(this.mangerDept == '0'){
+                        toastShow('请选择上级主管部门！', 2000);
+                        return;
+                    }
+
+                    if(this.mangerUser == '0'){
+                        toastShow('请选择主管人员！', 2000);
+                        return;
+                    }
+
+                    if(!this.checkResultPhotosStr){
+                        toastShow('请上传现场图片！', 2000);
+                        return;
+                    }
+
+                    if(!this.postData.CheckResultIntro){
+                        toastShow('请填写反馈说明！', 2000);
+                        return;
+                    }
+
+
+                    this.postData.CheckResultPhotoList = this.checkResultPhotosStr;
+
+                    for(var i = 0; i < this.mangerDeptList.length; i++ ){
+
+                        if(this.mangerDeptList[i].ID == this.mangerDept){
+
+                            this.postData.CheckAddDeptID = this.mangerDeptList[i].ID;
+                            this.postData.CheckAddDeptName = this.mangerDeptList[i].DeptName;
+
+                        }
+
+                    }
+
+                    for(var i = 0; i < this.mangerUserList.length; i++ ){
+
+                        if(this.mangerUserList[i].ID == this.mangerUser){
+
+                            this.postData.CheckAddMan = this.mangerUserList[i].ID;
+                            this.postData.CheckAddManName = this.mangerUserList[i].UserNickName;
+
+                        }
+
+                    }
+
+                    switch(this.postData.CheckResulTreatment){
+
+                        case '下达责令书' :
+                            this.postData.CheckResulTreatmentID = 0;
+                            break;
+
+                        case '直接封查' :
+                            this.postData.CheckResulTreatmentID = 2;
+                            break;
+
+                    }
+
+                    console.log('这是要提交的任务信息'+JSON.stringify({"taskcheck": this.postData, ListDevice:this.ListDevice}));
+
+                    subei.alerts((this.ListDevice.length==0?'您未关联设备，确认要提交吗？':'您确认要提交吗？'), function () {
+
+                        showLoader();
+
+                        apiAjax({url:'TaskCheck/CheckTaskSumbitEdit',type:'postJson',param:{"taskcheck": this.postData, ListDevice:this.ListDevice}} ,function(data){
+
+                            hideLoader();
+                            toastShow('提交成功！',2000);
+                            console.log('这是返回的结果'+JSON.stringify(data));
+
+                            if(this.postData.CheckResulTreatment == '下达指令书'){
+
+                                var items = [];
+                                items.push(data);
+                                if(data.CommandID==0){
+                                    setTimeout(function(){
+                                        // d_sendEventExtra('chooseTask',{ items: JSON.stringify(items) });
+                                        closeWin();
+                                        d_sendEventExtra('refresh');
+                                    },800);
+                                }
+                                openWin('tasks_instruct_win','./../../1Tab/add_instruct/tasks_instruct_win.html',{taskId: data.CommandID, taskIdx: data.ID, companyUseID:data.CompanyUseID,companyUseName:data.CompanyUseName,companyUseFullAddress:data.CompanyUseFullAddress });
+
+                            }else{
+
+                                d_sendEventExtra("task_submit_ok",{ status: 'A3' });
+                                setTimeout(function (){ closeWin() },1000);
+                                openWin('index','./../../index.html',{});
+
+                            }
+
+                        }.bind(this));
+
+                    }.bind(this));
+
+                }
+            },
+            computed: {
+                checkResultPhotosStr: function () {
+
+                    var imgs = [];
+                    for (var item in this.checkResultPhotos) {
+                        if (this.checkResultPhotos[item].name) {
+                            imgs.push(this.checkResultPhotos[item].name);
+                        }
+                    }
+                    return imgs.join(',');
+
+                }
+
+            },
+            watch:{
+                mangerDept: function (){
+
+                    this.mangerUser = '0'
+
+                }
+            }
+        })
+    })
+
+</script>
+
+</html>

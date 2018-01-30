@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        html,body{background: none!important;}
+        select { width:90px; background: #fff; border: 0px;}
+        #app{ height: 100%;width: 100%; }
+        #app .main{background: #fff; margin-top: 10px;}
+        .footers{width: 100%; background: #fff; box-sizing: border-box; padding: 10px;}
+        .footers button{width: 100%;}
+        .footers .danger { margin-top: 10px; }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main" v-cloak>
+            <mt-field label="单位名称" placeholder="输入单位名称" v-model="searchValue.UseName"></mt-field>
+            <mt-field label="单位联系人" placeholder="输入单位联系人" v-model="searchValue.UseContactMan"></mt-field>
+            <mt-field label="社会信用代码" placeholder="输入社会信用代码" v-model="searchValue.UseCreditCode"></mt-field>
+            <mt-field label="法定代表人" placeholder="输入法定代表人" v-model="searchValue.UseLegalPerson"></mt-field>
+            <!-- <mt-field label="单位所在街镇" disabled>
+                <select name="单位所在街镇">
+                    <option></option>
+                </select>
+            </mt-field> -->
+            <mt-field label="单位地址" placeholder="输入设备地址" v-model="searchValue.UseFullAddress"></mt-field>
+            <div class="footers">
+                <mt-button class="danger" type="danger" @click="cancelSearch">取消</mt-button>
+            </div>
+        </div>
+    </div>
+</body> 
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+
+        var searchValue = subei.getParam("searchValue");
+
+        window.app = new Vue({
+            el:"#app",
+            data:{
+                keyWords:"",
+                searchValue:{ 
+                    keyword:"",
+                    UseName: "",
+                    UseCreditCode: "",
+                    UseFullAddress: "",
+                    UseContactMan: "",
+                    UseLegalPerson: ""
+                 }
+            },
+            mounted: function (){
+                this.searchValue = (searchValue ? searchValue : this.searchValue);
+            },
+            methods:{
+                cancelSearch: function (){
+
+                    for(key in this.searchValue){
+                        
+                        this.searchValue[key] = "";
+
+                    }
+
+                    // this.keyWords = "";
+                    startSearch()
+                }
+            },
+            watch:{
+                               
+            }
+        })
+    });
+
+    function startSearch(){
+        execJs('company_list_win','index','search('+JSON.stringify(app.searchValue)+')');
+        execJs('company_list_win','','changeTitle('+JSON.stringify(app.searchValue)+')');
+        closeWin();
+
+    }
+
+</script>
+
+</html>

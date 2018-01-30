@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        .list{
+            background: #fff;
+            margin-top: 10px;
+            position: relative;
+        }
+        .isItem{
+            padding: 10px;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -19px;
+        }
+        input[type=checkbox]:checked + label:before {
+            content: "\2713";
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+            font-size: 15px;
+            color: #f3f3f3;
+            text-align: center;
+            line-height: 15px;
+        }
+        .itemLabel{width: 100%;}
+        .demo--radio{display:none}
+        .demo--radioInput{background-color:#fff;border:1px solid rgba(0,0,0,0.15);border-radius:100%;display:inline-block;height:16px;margin-top:-1px;vertical-align:middle;width:16px;line-height:1}
+        .demo--radio:checked + .demo--radioInput:after{background-color:#26a2ff;border-radius:100%;content:"";display:inline-block;height:12px;margin:2px;width:12px}
+        .demo--checkbox.demo--radioInput,.demo--radio:checked + .demo--checkbox.demo--radioInput:after{border-radius:0}
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="task_list">
+            <div class="list" v-for="(item, index) in searchList">
+                <label class="itemLabel">
+                    <div class="isItem">
+                        <input class="demo--radio" type="checkbox" name="isOk" :value="item.ID" v-model="TaskIDs">
+                        <span class="demo--checkbox demo--radioInput"></span>
+                    </div>
+                    <inspect-list :key="index" :item="item" :state="1"></inspect-list>
+                </label>     
+            </div>
+            <no-data :item="searchList" :load="getTaskCheckList"></no-data>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+
+        var companyUseID = subei.getParam('companyUseID');
+
+        window.app = new Vue({
+            el: "#app",
+            data: {
+                TaskIDs: [],
+                chooseItem: [],
+                searchList: [],
+                selected: '4',
+                searchValue:{ PageSize: 10, PageIndex: 1, RowCount: 0, CheckStatusIn:'1,2,3,4,5', keyword: null},
+            },
+            mounted: function (){
+                // this.searchList = [];
+                subei.getDataInit(this, function () {
+                    this.searchValue.keyword = '';
+                    this.getTaskCheckList();
+                }.bind(this));
+
+                // var CommandTaskIDs = subei.getParam('CommandTaskIDs');
+                // this.TaskIDs = (CommandTaskIDs?CommandTaskIDs.split(','):[]);
+
+            },
+            watch:{
+                TaskIDs: function (val,vals){
+                    var items = [];
+                    for(var i=0; i<val.length; i++){
+                        for(var j=0; j<this.searchList.length; j++){
+                            if(val[i]==this.searchList[j].ID){
+                                items.push(this.searchList[j]);
+                            }
+                        }
+                    }
+                    this.chooseItem = items;
+                    console.log('我是勾了的列表||'+JSON.stringify(items));
+                }
+            },
+            methods: {
+                openInspectInfo: function (item) {
+                    openWin('inspect_info_win', './../../common/task_info_1_2/inspect_info_win.html', {taskId: item.ID});
+                },
+                getTaskCheckList: function (){
+
+                    showLoader();
+
+                    apiAjax({url:'Device/TaskCheck/?CheckStatusIn=' + this.searchValue.CheckStatusIn + "&SelectMode=1&CompanyUseID=" + companyUseID,type:'post',param:this.searchValue},function(data,total){
+                        hideLoader();
+                        this.searchValue.RowCount = total || 0;
+                        data = this.filterTime(data)
+                        this.searchList = this.searchList.concat(data);
+                        // console.log('我是检查任务列表数据'+JSON.stringify(data))
+                    }.bind(this))
+                },
+
+                filterTime: function (data){
+
+                    if(data !== []){
+                        var dateIndex ="";
+
+                        for(var i = 0; i < data.length; i++){
+
+                            dateIndex = data[i].CheckResultEndDate.indexOf('T');
+                            data[i].CheckResultEndDate = data[i].CheckResultEndDate.substr(0,dateIndex);
+                        }
+
+                    }
+                    return data;
+                }
+
+            }
+        });
+    });
+
+    function chooseTasks(){
+
+        var tasks = app.TaskIDs.join(',');
+        var taskL = app.TaskIDs.length;
+
+        if(!taskL||taskL==''||taskL==0){
+            toastShow('请选择要关联的任务');
+            return;
+        }
+
+        subei.alerts('已选择'+taskL+'项',function(){
+
+            d_sendEventExtra('chooseItems',{items: JSON.stringify(app.chooseItem) });
+            setTimeout(function(){
+                closeWin('');
+            },600);
+
+        });
+    }
+
+</script>
+
+</html>

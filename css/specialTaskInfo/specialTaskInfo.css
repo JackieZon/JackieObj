@@ -1,0 +1,51 @@
+body {
+  background: #f5f5f5;
+  height: 100%;
+}
+
+#app {
+  box-sizing: border-box;
+  padding-bottom: 1.86667rem;
+}
+
+#app .mint-tab-container {
+  padding: 50px 0px 65px;
+}
+
+#app .device_info {
+  margin-top: 10px;
+  background: #fff;
+}
+
+#app .device_info textarea {
+  resize: none;
+}
+
+#app .device_info .company_title {
+  background: #fff;
+  text-align: center;
+}
+
+#app .device_info .company_title p {
+  line-height: 45px;
+  color: #26a2ff;
+  font-size: 17px;
+  border-top: 1px solid #d9d9d9;
+}
+
+#app .image {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 5px;
+  display: inline-block;
+  justify-content: center;
+  align-items: center;
+  color: #26a2ff;
+  overflow: hidden;
+}
+
+#app .image .img {
+  width: 100%;
+  padding: 0;
+}

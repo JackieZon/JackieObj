@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        .list{
+            background: #fff;
+            margin-top: 10px;
+            position: relative;
+        }
+        .isItem{
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -16.5px;
+        }
+        input[type=checkbox]:checked + label:before {
+            content: "\2713";
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+            font-size: 15px;
+            color: #f3f3f3;
+            text-align: center;
+            line-height: 15px;
+        }
+        .itemLabel{width: 100%;}
+        .demo--radio{display:none}
+        .demo--radioInput{background-color:#fff;border:1px solid rgba(0,0,0,0.15);border-radius:100%;display:inline-block;height:16px;margin-top:-1px;vertical-align:middle;width:16px;line-height:1}
+        .demo--radio:checked + .demo--radioInput:after{background-color:#26a2ff;border-radius:100%;content:"";display:inline-block;height:12px;margin:2px;width:12px}
+        .demo--checkbox.demo--radioInput,.demo--radio:checked + .demo--checkbox.demo--radioInput:after{border-radius:0}
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="task_list">
+            <div class="list" v-for="(item, index) in searchList">
+                <label class="itemLabel">
+                    <div class="isItem">
+                        <mt-button size="small" v-if="index !== 0" @click="deleteList(index)" >删除</mt-button>
+                    </div>
+                    <inspect-list :key="index" :item="item" :state="1"></inspect-list>
+                </label>     
+            </div>
+            <no-data :item="searchList"></no-data>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+
+        subei.noRepeat();
+        window.app = new Vue({
+            el: "#app",
+            data: {
+                TaskIDs: [],
+                searchList: [],
+                searchValue:{ PageSize: 10, PageIndex: 1, RowCount: 0, CheckStatusIn:'1,2,3,4,5', keyword: null}
+            },
+            mounted: function (){
+
+                var CommandTaskIDs = subei.getParam('CommandTaskIDs');
+                var items = subei.getParam('items');
+                this.TaskIDs = (CommandTaskIDs?CommandTaskIDs.split(','):[]);
+                if(items){
+                    this.searchList = JSON.parse(items);
+                }
+
+                d_addEventListener('chooseItems', function(data){
+
+                    var items = JSON.parse(data.value.items);
+                    console.log('我是接收广播的方法'+JSON.stringify(items));
+
+                    for(var i = 0; i < items.length; i++){
+
+                        for(var t = 0; t < this.searchList.length; t++){
+
+                            if(items[i].ID == this.searchList[t].ID){
+
+                                this.searchList[t] = items[i]
+
+                            }else{
+
+                                this.searchList.push(items[i])
+
+                            }
+
+                        }
+                    }
+
+                    this.searchList = this.searchList.concat(items);
+
+                    this.searchList = this.searchList.arrUniq();
+
+                }.bind(this));
+
+            },
+            watch:{
+                searchList: function (val,vals){
+
+                    var ids = [];
+                    for(var item=0; item<val.length; item++){
+                        ids.push(val[item].ID);
+                    }
+                    this.TaskIDs = ids;
+                    console.log('列表长度||'+val.length);
+                    console.log('列表的ID||'+ids);
+
+                }
+            },
+            methods: {
+
+                filterTime: function (data){
+
+                    if(data !== []){
+                        var dateIndex ="";
+                        for(var i = 0; i < data.length; i++){
+                            dateIndex = data[i].CheckResultEndDate.indexOf('T');
+                            data[i].CheckResultEndDate = data[i].CheckResultEndDate.substr(0,dateIndex);
+                        }
+                    }
+                    return data;
+
+                },
+                deleteList: function (i){
+                    
+                    subei.alerts('确认要删除吗？',function(){
+                        this.searchList.splice(i,1);
+                    }.bind(this));
+
+                }
+            }
+        });
+    });
+
+    function chooseTasks(){
+
+        var tasks = app.TaskIDs.join(',');
+        var taskL = app.TaskIDs.length;
+
+        d_sendEventExtra('chooseTask',{ tasks:tasks, taskL:taskL, items:JSON.stringify(app.searchList) });
+
+        setTimeout(function(){
+            closeWin('');
+        },1000);
+
+    }
+
+</script>
+
+</html>

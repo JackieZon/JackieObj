@@ -1,0 +1,89 @@
+@function rem($px) {
+    $remSize: $px / 375 * 10;
+    @return #{$remSize}rem;
+}
+
+body{
+    font-size: 16px;
+    height: auto!important;
+}
+#app { 
+    box-sizing: border-box;
+    padding-bottom: rem(60);
+    background: #f5f5f5;
+    .date .mint-cell-text{line-height: initial;}
+    .new { color:  #1296db; }
+    .but { position: fixed; bottom: 0px; right: 0px; width: 96%; padding: 2%; background: white; }
+    .titles { width:100%; display: flex; justify-content:center; color: #26a2ff; position: relative;}
+    .titles{
+        line-height: rem(30);
+        .choose{
+            position: absolute;
+            right: rem(15);
+            line-height: rem(30)
+        }
+    }
+
+    .device_info {
+        margin-top: rem(10);
+        background: #fff;
+        .company_title{
+             background: #fff; 
+             text-align: center;
+             p{ line-height: rem(45); color: #26a2ff; font-size: rem(17); border-top: 1px solid #d9d9d9; }
+        }
+    }
+    .record {
+        .record_list { background: white; padding: rem(10); margin-top: rem(10); }
+        .record .record_list .area .area_content { font-size: 14px; }
+        .record_list img { width: rem(25); height: rem(25); padding-right: rem(10); }
+        .record_list .record_content { display: flex; justify-content: space-between;}
+        .record_list p { font-size: 14px; line-height: 30px; display: flex; align-items: center; }
+        .record_list .area { display: flex; align-items: center; }
+    }
+    .task_action { 
+        margin-top: rem(10); 
+        .title{ padding-left: rem(10); font-size: 12px; color: #888; }
+    }
+    textarea{ resize: none; height: 0px; padding-top: rem(22); padding-bottom: rem(45); }
+    .inspect_data { padding-top: rem(10); }
+    .inspect_content {
+         margin-top: rem(10); 
+        .maintenance_data {
+             display: flex; 
+             align-items: center; 
+             flex-wrap: wrap; 
+             border-bottom: 1px solid #d9d9d9; 
+             padding: rem(10);
+             background: white;
+             border-top: 1px solid #d9d9d9;
+
+             .image.add{border: 1px solid #f1f1f1;}
+
+             p { width:rem(80); margin-right: rem(15); }
+            .image {
+                 position: relative;
+                 width: rem(80);
+                 height: rem(80);
+                 margin: rem(5);
+                 display: flex;
+                 justify-content: center;
+                 align-items: center;
+                 color: #26a2ff;
+
+                 img{ width: 100%; height: 100%; padding: 0; }
+                 .deleteImg{
+                     position: absolute;
+                     top: rem(2);
+                     right: rem(2);
+                     color: red;
+                     background: rgba(255,255,255,0.65);
+                     border-radius: rem(5);
+                     display: flex;
+                     justify-content: flex-end;
+                     align-items: center;
+                }
+            }
+        }
+    }
+}

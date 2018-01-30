@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        body { background: #f5f5f5; height: 100%; }
+        #app .mint-tab-container { padding: 50px 0px 10px; }
+        #app .device_info { margin-top: 10px; background: #fff;}
+        #app .but { display: flex; padding: 5px; background: white; }
+        #app .but button { margin: 5px; }
+
+        #app .device_info .regulations { background: #f5f5f5; }
+            #app .device_info .regulations textarea{ resize: none; height: 100px; font-size: 15px; }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+
+        <div class="device_info">
+            <mt-field label="社会信用代码" :value="companyInfo.UseCreditCode | s_toStr" disabled></mt-field>
+            <mt-field label="单位名称" :value="companyInfo.UseName | s_toStr" disabled></mt-field>
+            <mt-field label="单位电话" :value="companyInfo.UseTel | s_toStr" disabled></mt-field>
+            <mt-field label="单位传真" :value="companyInfo.UseFax | s_toStr" disabled></mt-field>
+            <mt-field label="单位地址" :value="companyInfo.UseAreaName1 + companyInfo.UseAreaName2 + companyInfo.UseAreaName3 | s_toStr" disabled></mt-field>
+            <mt-field label="详细地址" :value="companyInfo.UseAddress | s_toStr" disabled></mt-field>
+        </div>
+
+        <div class="device_info">
+            <mt-field label="法定代表人" :value="companyInfo.UseLegalPerson | s_toStr" disabled></mt-field>
+            <mt-field label="代表人电话" :value="companyInfo.UseLegalPersonTel | s_toStr" disabled></mt-field>
+        </div>
+
+        <div class="device_info">
+            <mt-field label="单位联系人" :value="companyInfo.UseContactMan | s_toStr" disabled></mt-field>
+            <mt-field label="联系人电话" :value="companyInfo.UseContactManTel | s_toStr" disabled></mt-field>
+        </div>
+
+        <div class="device_info">
+            <mt-field label="单位安全员" :value="companyInfo.UseSafetyMan | s_toStr" disabled></mt-field>
+            <mt-field label="安全员电话" :value="companyInfo.UseSafetyManTel | s_toStr" disabled></mt-field>
+        </div>
+        <div class="device_info">
+            <div class="regulations">
+                <mt-field label="单位备注" disabled ></mt-field>
+                <mt-field v-model="companyInfo.UseIntro" type="textarea" rows="3" disabled></mt-field> 
+            </div>
+       </div>
+
+       <div class="device_info">
+            <mt-cell title="单位相册"></mt-cell>
+            <div class="image" v-if="companyInfo.UsePhotoListPath.length > 0"  v-for="(item,index) in companyInfo.UsePhotoListPath" @click="imgView(index)">
+                <img class="img" v-cache="item.url" alt="暂无">
+            </div>
+        </div>
+
+        <div class="device_info">
+            <div class="but">
+                <mt-button type="primary" size="large" @click="openDeviceList">查看单位设备</mt-button>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+
+<script>
+    subei.ready(function () {
+
+        var companyId = subei.getParam('companyId');
+
+        new Vue({
+            el: '#app',
+            data: {
+                companyInfo:{}
+            },
+            mounted: function (){
+
+                this.getCompanyInfo();
+
+            },
+            methods: {
+
+                getCompanyInfo: function (){
+                    showLoader();
+                    console.log(companyId)
+                    apiAjax({ url: 'CompanyUse/CompanyUse/' + companyId, type: 'post', param:{} }, function (data, total) {
+                        hideLoader();
+                        this.companyInfo = data;
+                        console.log('这是单位详情数据' + JSON.stringify(data))
+
+                    }.bind(this));
+
+                },
+
+                openDeviceList: function () {
+                    openWin('companyDevice_win', './../companyDevice/companyDevice_win.html', {companyId: companyId});
+                },
+
+                imgView: function (index){
+                    var imgArr = [];
+                    for(var i=0; i<this.companyInfo.UsePhotoListPath.length; i++){
+                        imgArr.push(this.companyInfo.UsePhotoListPath[i].url);
+                    }
+                    subei.imgPreview(index,imgArr);
+                }
+
+            }
+        
+        })
+
+    });
+   
+
+</script>
+
+</html>

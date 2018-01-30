@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+</head>
+
+<body>
+    <div class="header" ref="header" id="header">
+        <mt-header title="设备查询">
+            <div slot="left">
+                <mt-button icon="back" onclick="api.closeWin();"></mt-button>
+            </div>
+            <span slot="right" :name="'icon-add'" :width="28" :height="28" @click="filterDevice">{{ searchStatus == 0 ? '筛选' : '已筛选' }}</span>
+        </mt-header>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+
+        new Vue({
+            el: "#header",
+            data: {
+                deviceId: '',
+                searchStatus:'0',
+                defaultData:{
+                    DeviceName: '',
+                    DeviceModel: '',
+                    DeviceNo: '',
+                    DeviceRegNo: '',
+                    DeviceCertNo: '',
+
+                    DeviceType1: '',
+                    // DeviceType2: '',
+                    DeviceStatus: '',
+                    DeviceUseName: '',
+                    DeviceFullAddress: '',
+                    DeviceArea4: ''
+                },
+            },
+            mounted: function () {
+
+                d_addEventListener('searchChange', function (res) {
+                    this.defaultData = JSON.parse(res.value.defaultData);
+                    this.searchStatus = JSON.parse(res.value.searchChange);
+                    
+                }.bind(this));
+
+                openFrame('index', './index.html', {});
+
+            },
+            methods: {
+                filterDevice: function(){
+                        
+                    // d_sendEventExtra("filter_device",{filterDevice: true});
+
+                    openWin("search_win","./../../common/search/search_win.html",{defaultData: JSON.stringify(this.defaultData)})
+  
+                    // var winHeight = document.body.offsetHeight;
+
+                    // api.openFrame({
+                    //     name: 'search',
+                    //     url: './../../common/search/search_frm.html',
+                    //     pageParam: {defaultData: JSON.stringify(this.defaultData)},
+                    //     bounces: false,
+                    //     vScrollBarEnabled: false,
+                    //     hScrollBarEnabled: false,
+                    //     rect: {
+                    //         x: 0,
+                    //         y: 0,
+                    //         w: 'auto',
+                    //         h: winHeight
+                    //     },
+                    //     bgColor: 'rgba(0,0,0,0.3)',
+                    //     animation: {
+                    //         type: 'movein',              //动画类型（详见动画类型常量）
+                    //         subType: "from_bottom",      //动画子类型（详见动画子类型常量）
+                    //         duration: 100                //动画过渡时间，默认300毫秒
+                    //     }
+                    // });
+
+                },
+            }
+            
+        })
+    })
+
+</script>
+
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        body { background: #f5f5f5; height: 100%; }
+        #app .mint-tab-container { padding: 50px 0px 10px; }
+        #app .device_info { margin-top: 10px; background: #fff;}
+        #app .but { display: flex; padding: 5px; background: white; }
+        #app .but button { margin: 5px; }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <device-list v-for="(item,index) in searchList" :key="index" :item="item" state="1" @click.native="openDeviceInfo(item)"></device-list>
+        <no-data :item="searchList" :load="getDeviceList"></no-data>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+
+<script>
+    subei.ready(function () {
+
+        var companyId = subei.getParam('companyId');
+
+        new Vue({
+            el: '#app',
+            data: {
+                searchValue:{ PageSize: 10, PageIndex: 1, RowCount: 0, keyword:null, DeviceUseID: companyId },
+                searchList:[]
+            },
+            mounted: function (){
+
+                subei.getDataInit(this, function () {
+
+                    this.searchValue.keyword = '';
+                    this.getDeviceList();
+
+                }.bind(this));
+
+            },
+            methods: {
+
+                getDeviceList: function () {
+
+                    var param = this.searchValue;
+                    showLoader();
+                    apiAjax({ url: 'Device/Device', type: 'post', param: param }, function (data, total) {
+                        hideLoader();
+                        this.searchList = this.searchList.concat(data)
+                        this.searchValue.RowCount = total || 0;
+
+                        console.log('这是单位设备列表数据' + JSON.stringify(this.searchList))
+
+                    }.bind(this));
+
+                },
+                openDeviceInfo: function (item) {
+                    openWin('device_info_win', './../../../common/device_info_1_2_3/device_info_win.html', {deviceId: item.ID,companyUseID:item.DeviceUseID});
+                },
+
+            }
+        
+        })
+
+    });
+   
+
+</script>
+
+</html>

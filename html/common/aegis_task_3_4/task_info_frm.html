@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <style>
+        body { background: #f5f5f5; height: 100%; }
+        img { width: 25px; height: 25px; padding-right: 10px; }
+        input[type=checkbox] { width: 20px; height: 20px; }
+        #app{box-sizing: border-box;padding-bottom: 65px;}
+        #app .mint-tab-container{ padding-top: 50px; }
+        #app .device_info{ padding-top: 10px; background: #f5f5f5; }
+            #app .device_info textarea{ resize: none; }
+            #app .device_info .company_title{ background: #fff; text-align: center; }
+                #app .device_info .company_title p{ line-height: 45px; color: #26a2ff; font-size: 17px; border-top: 1px solid #d9d9d9; }
+            #app .but{ position: fixed; left: 0; bottom: 0; box-sizing: border-box; width: 100%; padding: 10px 15px; background: rgba(255, 255, 255, 0.75); }
+        #app .record{padding-bottom: 10px; box-sizing: border-box;}
+        #app .record .tableTit{box-sizing: border-box; line-height: 28px;}
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+            #app .record .record_list .record_content { display: flex; justify-content: space-between;}
+            #app .record .record_list p { font-size: 14px; line-height: 35px; display: flex; align-items: center; }
+        #app .table { background: white; padding: 10px; }
+            #app .table table { width: 100%; }
+                #app .table table tr { height: 40px; }
+                    #app .table table tr th { width: 25%; background: #26a2ff; border:1px solid #26a2ff; color: white; }
+                    #app .table table tr td { width: 25%; text-align: center; border:1px solid #26a2ff; font-size: 14px; }
+        #app .device_info .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d9d9d9; padding: 10px;  background: white; border-top: 1px solid #d9d9d9; }
+            #app .device_info .maintenance_data p { width:80px; margin-right: 15px; }
+            #app .device_info .maintenance_data .image { width: 80px; height: 80px; padding: 8px; }
+                #app .device_info .maintenance_data .image img{ width: 100%; height: 100%; padding: 0; }
+
+        #app .mint-popup { width: 100%; }
+        #app .mint-popup textarea{ resize: none; height: 80px; font-size: 15px; }
+        #app .examine .mint-cell-wrapper { background: #ffffff; }
+        #app .examine .mint-field.is-textarea .mint-cell-title { padding: 10px 0 10px 15px; }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <mt-navbar v-model="selected" :fixed="true">
+            <mt-tab-item id="3">维保信息</mt-tab-item>
+            <mt-tab-item id="4">维保记录</mt-tab-item>
+        </mt-navbar>
+
+        <mt-tab-container v-model="selected">
+            <!--设备信息页-->
+            <mt-tab-container-item id="1">
+                <div class="device_info">
+                    <mt-field label="登记日期" :value="tenanceInfo.DeviceAddDate|s_toDate" disabled></mt-field>
+                    <mt-field label="设备注册号" :value="tenanceInfo.DeviceRegNo|s_toStr" disabled></mt-field>
+                    <mt-field label="注册状态" :value="(tenanceInfo.DeviceRegNo==0?'未注册':'已注册')" disabled></mt-field>
+                    <mt-field label="设备种类" :value="tenanceInfo.DeviceTypeName1|s_toStr" disabled></mt-field>
+                    <mt-field label="设备种类" :value="tenanceInfo.DeviceTypeName2|s_toStr" disabled></mt-field>
+                    <mt-field label="设备类别" :value="tenanceInfo.DeviceTypeName3|s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <mt-field label="出厂编号" :value="tenanceInfo.DeviceProduceNo|s_toStr" disabled></mt-field>
+                    <mt-field label="出厂日期" :value="tenanceInfo.DeviceProduceDate|s_toDate" disabled></mt-field>
+                    <mt-field label="使用状态" :value="deviceStatus[tenanceInfo.DeviceStatus]|s_toStr" disabled></mt-field>
+                    <mt-field label="设备所在地" :value="tenanceInfo.DeviceFullAddress|s_toStr" disabled></mt-field>
+                    <mt-field label="使用登记号" :value="tenanceInfo.DeviceUseID|s_toStr" disabled></mt-field>
+                    <mt-field label="发证时间" :value="tenanceInfo.DeviceCertDate|s_toDate" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <mt-field label="设备参数" :value="'我是设备参数'" type="textarea" rows="4" disabled></mt-field>
+                </div>
+
+            </mt-tab-container-item>
+
+            <!--单位信息页-->
+            <mt-tab-container-item id="2">
+
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>使用单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="tenanceInfo.DeviceUseName|s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="tenanceInfo.DeviceUseContactMan|s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="tenanceInfo.DeviceUseTel|s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="tenanceInfo.DeviceUseFullAddress|s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>生产单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="tenanceInfo.DeviceProduceName|s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="tenanceInfo.DeviceProduceContactMan|s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="tenanceInfo.DeviceProduceContactTel|s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="tenanceInfo.DeviceProduceFullAddress|s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>安装单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="tenanceInfo.DeviceInstallName|s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="tenanceInfo.DeviceInstallContactMan|s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="tenanceInfo.DeviceInstallContactTel|s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="tenanceInfo.DeviceInstallFullAddress|s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>使用单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="tenanceInfo.DeviceUseName|s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="tenanceInfo.DeviceUseContactMan|s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="tenanceInfo.DeviceUseTel|s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="tenanceInfo.DeviceUseFullAddress|s_toStr" disabled></mt-field>
+                </div>
+            </mt-tab-container-item>
+
+            <!--维保信息页-->
+            <mt-tab-container-item id="3">
+                <div>
+                    <ul class="record">
+                        <li class="record_list" @click="openDeviceInfo(tenanceInfo.ExtInfo.DeviceID)">
+                            <p><img src="./../../../image/registered.svg" alt="">设备注册码 : <span>&nbsp;{{ tenanceInfo.DeviceRegNo | s_toStr }}</span></p>
+                            <p><img src="./../../../image/no.svg" alt="">证书编号 : <span>&nbsp;{{ tenanceInfo.DeviceNo | s_toStr }}</span></p>
+                            <div class="record_content">
+                                <p><img src="./../../../image/deviceName.svg" alt="">设备名称 : <span>&nbsp;{{ tenanceInfo.DeviceName | s_toStr }}</span></p>
+                                <img src="./../../../image/arrow.svg" alt="">
+                            </div>
+                            <p><img src="./../../../image/numbering.svg" alt="">出厂编号 : <span>&nbsp;{{ tenanceInfo.DeviceProduceNo | s_toStr }}</span></p>
+                            <div class="record_content">
+                                <p><img src="./../../../image/type.svg" alt="">设备种类 : <span>&nbsp;{{ tenanceInfo.DeviceTypeName1 | s_toStr }}-{{tenanceInfo.DeviceTypeName2 | s_toStr }}</span></p>
+                                <p><img src="./../../../image/status.svg" alt="">状态 : <span>&nbsp;{{ tenanceInfo.DeviceStatusName | s_toStr }}</span></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="aegis_info" v-if="tenanceInfo.ExtInfo">
+                    <mt-field label="维保时间" :value="tenanceInfo.ExtInfo.TenanceFinishDate | s_toDate" disabled></mt-field>
+                    <mt-field label="维保负责人" :value="tenanceInfo.ExtInfo.CompanyTenanceContactMan | s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="tenanceInfo.ExtInfo.CompanyTenanceContactManTel | s_toStr" disabled></mt-field>
+                    <mt-field label="维保类型" :value="tenanceInfo.ExtInfo.TenanceTypeName | s_toStr" disabled></mt-field>
+                </div>
+
+                <div class="aegis_info" v-if="tenanceInfo.ExtInfo">
+                    <mt-field label="维保情况" :value="tenanceInfo.ExtInfo.TenanceIntro | s_toStr" disabled></mt-field>
+                    <div class="maintenance_data">
+                        <mt-field label="维保资料"></mt-field>
+                        <div class="image" v-if="tenanceInfo.TenancePhotos !== '' || tenanceInfo.TenancePhotos !== []" v-for="(item,index) in tenanceInfo.TenancePhotos">
+                            <img v-cache="item.indexOf('http://') < 0 ? 'http://app-lift2.subei88.com/'+item : item" alt="sample">
+                        </div>
+                    </div>
+                    <div class="table">
+                        <table>
+                            <!-- <caption class="tableTit">根据不同的维保类型，调用不同维保项目</caption> -->
+                            <tr>
+                                <th>维保项目</th>
+                                <th>维保内容</th>
+                                <th>完成</th>
+                            </tr>
+                            <tr v-for="(item,index) in tenanceInfo.ExtInfo.ListTaskTenanceDetail" v-if="tenanceInfo.ExtInfo.ListTaskTenanceDetail.length!==0">
+                                <td>{{ item.TenanceItemName | s_toStr }}</td>
+                                <td>{{ item.TenanceItemIntro | s_toStr }}</td>
+                                <td>{{ item.TenanceItemStatus==2? '已完成' : '未完成'  }}</td>
+                            </tr>
+                            <tr v-else>
+                                <td>'暂无'</td>
+                                <td>'暂无'</td>
+                                <td>'暂无'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <mt-field label="备注" :value="tenanceInfo.TenanceIntro | s_toStr" disabled></mt-field>
+                </div>
+
+                <div class="aegis_info" v-if="tenanceInfo.ExtInfo">
+                    <mt-field label="审核时间" :value="tenanceInfo.ExtInfo.TenanceAuditDate | s_toDate" disabled></mt-field>
+                    <mt-field label="审核结果" :value="tenanceInfo.ExtInfo.TenanceStatusName | s_toStr" disabled></mt-field>
+                    <mt-field label="审核备注" :value="tenanceInfo.ExtInfo.TenanceAuditIntro | s_toStr" disabled></mt-field>
+                </div>
+
+                <div class="but" v-if="tenanceInfo.ExtInfo">
+                    <mt-button type="primary" size="large" v-if="userType==3&&tenanceInfo.ExtInfo.TenanceStatus==1" @click.native="submitTenance()" >处理维保</mt-button>
+                    <mt-button type="primary" size="large" v-if="userType == 2" @click="openExamine">审核</mt-button>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-popup v-model="examineValue" modal="true" position="bottom" popup-transition="popup-fade">
+                <div class="examine">
+                    <mt-radio style="padding-bottom:10px;"
+                        align="right"
+                        v-model="result"
+                        :options="['通过','退回']">
+                    </mt-radio>
+                    <div style="border-top: 1px solid #d9d9d9;"></div>
+                    <mt-field label="审核描述" placeholder="请输入审核描述" v-model="auditData.TenanceAuditIntro" type="textarea" rows="4"></mt-field>
+                    <div class="button">
+                        <mt-button type="primary" size="large" @click="confirm">确认</mt-button>
+                    </div>
+                </div>
+            </mt-popup>
+
+
+            <!--维保记录页-->
+            <mt-tab-container-item id="4">
+
+                <div>
+                    <ul class="record">
+                        <li class="record_list" v-for="item in tenanceInfo.ListTaskTenance" @click="openAegisInfo">
+                            <p><img src="./../../../image/time.svg" alt="">维保时间 : <span>&nbsp;{{item.TenanceAddDate|s_toDate}}</span></p>
+                            <p><img src="./../../../image/repair.svg" alt="">维保单位 : <span>&nbsp;{{item.CompanyTenanceName|s_toStr}}</span></p>
+                            <div class="record_content">
+                                <p><img src="./../../../image/man.svg" alt="">维保人员 : <span>&nbsp;{{item.TenanceManNames|s_toStr}}</span></p>
+                                <img src="./../../../image/arrow.svg" alt="">
+                            </div>
+                            <p><img src="./../../../image/company.svg" alt="">使用单位 : <span>&nbsp;{{item.CompanyTenanceName|s_toStr}}</span></p>
+                            <div class="record_content">
+                                <p><img src="./../../../image/man.svg" alt="">单位人员 : <span>&nbsp;{{item.CompanyUseName|s_toStr}}</span></p>
+                            </div>
+                            <div class="record_content">
+                                <p><img src="./../../../image/status.svg" alt="">状态 : <span>&nbsp;{{tenanceStatus[item.TenanceStatus]}}</span></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <no-data v-if="JSON.stringify(tenanceInfo.ListTaskTenance)=='[]'" :item="tenanceInfo.ListTaskTenance" :load="TaskTenanceInfo"></no-data>
+
+            </mt-tab-container-item>
+        </mt-tab-container>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script>
+    subei.ready(function(){
+
+        var taskId = subei.getParam('taskId');
+        var deviceId = subei.getParam('deviceId');
+
+        new Vue({
+            el:"#app",
+            data:{
+                deviceStatus:['未使用','在用','停用','检测中','整改中'],
+                tenanceStatus:['暂存','待处理','待审核','审核退回','审核通过'],
+                tenanceInfo:{},
+                selected:'3',
+                date:'2017-08-08',
+                value:[],
+                userType:'',
+                examineValue:false,
+                result:'通过',
+                auditData:{
+                    TenanceStatus: 4,
+                    TenanceAuditIntro: '',
+                    ID: taskId //16 13 24
+                },
+                project:[
+                    {
+                        label: '维保一',
+                        value: '值F'
+                    },
+                    {
+                        label: '维保二',
+                        value: '选中禁用的值'
+                    },
+                    {
+                        label: '维保三',
+                        value: '值A'
+                    },
+                    {
+                        label: '维保四',
+                        value: '值B'
+                    }
+                ]
+            },
+            mounted: function (){
+                
+                this.userType = window.localStorage.getItem('UserLoginTypeID');
+                this.TaskTenanceInfo();
+                var t_data = this;
+                d_sendEventExtra('taskTenance',function(){
+                    console.log('广播已刷新维保详情页');
+                    t_data.TaskTenanceInfo();
+                });
+
+            },
+            methods:{
+                // http://app-lift2.subei88.com:8080/api/Device/TaskTenanceInfo/7?deviceId=19273
+                TaskTenanceInfo: function (){
+
+                    showLoader();
+                    apiAjax({url:'Device/TaskTenanceInfo/'+(taskId||0)+'/'+(deviceId||0),type:'post',param:{}},function(data,total){
+                        hideLoader();
+
+                        if(data.ExtInfo.TenancePhotos !== ''){
+                            data.ExtInfo.TenancePhotos = data.ExtInfo.TenancePhotos.split(',');
+                        }
+                        this.tenanceInfo = data;
+                        console.log(JSON.stringify(data));
+                    }.bind(this));
+
+                },
+                openAegisInfo: function (){
+                    openWin('aegis_info_win','./../device_info_1_2_3/aegis_info/aegis_info_win.html',{})
+                },
+                submitTenance: function (){
+                    openWin('postTenance_win','./../../4User_aegis/2Tab/postTenance_win.html',{defaultData:this.tenanceInfo.ExtInfo});
+                },
+                openExamine: function (){
+                    this.examineValue = true;
+                },
+                confirm: function (){
+
+                    this.auditData.TenanceStatus = (this.result == "通过" ? 4 : 3);
+                    if(!this.auditData.TenanceStatus){
+                        toastShow('请选择审核结果！', 1000);
+                        return;
+                    }
+                    if(!this.auditData.TenanceAuditIntro){
+                        toastShow('请输入审核描述！', 1000);
+                        return;
+                    }
+
+                    // console.log(this.auditData.TenanceAuditIntro);
+                    // console.log('这是详情'+JSON.stringify(this.tenanceInfo));
+                    // return
+                    //http://app-lift2.subei88.com:8080/api/Device/TaskTenanceAudit
+                    
+                    apiAjax({url:'Device/TaskTenanceAudit',type:'post',param:this.auditData},function(data,total){
+                        toastShow(data, 1000);
+                        // console.log(JSON.stringify(data));
+                        d_sendEvent("confim_ok");  
+                        setTimeout(function () { closeWin(); }, 2000);
+                    }.bind(this));
+                    this.examineValue = false;
+
+                },
+                openDeviceInfo: function (deviceId) {
+                    openWin('device_info', './../../common/device_info_1_2_3/device_info_win.html', {deviceId: deviceId})
+                },
+            }
+        })
+    })
+</script>
+</html>

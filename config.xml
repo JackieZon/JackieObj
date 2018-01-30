@@ -1,0 +1,38 @@
+ <widget id="A6058090688746"  version="0.0.1">
+    <name>特种设备</name>
+    <description>Example For APICloud.</description>
+    <author email="developer@apicloud.com" href="http://www.apicloud.com">Developer</author>
+
+    <content src="index.html" />
+    <access origin="*" />
+	<preference name="pageBounce" value="false"/>
+	<preference name="appBackground" value="rgba(0,0,0,0.0)"/>
+	<preference name="windowBackground" value="rgba(0,0,0,0.0)"/>
+	<preference name="frameBackgroundColor" value="rgba(0,0,0,0.0)"/>
+	<preference name="hScrollBarEnabled" value="true"/>
+	<preference name="vScrollBarEnabled" value="true"/>
+	<preference name="autoLaunch" value="true"/>
+	<preference name="fullScreen" value="false"/>
+	<preference name="autoUpdate" value="false"/>
+	<preference name="smartUpdate" value="false"/>
+	<preference name="debug" value="true"/>
+	<preference name="statusBarAppearance" value="true"/>
+	<permission name="readPhoneState"/>
+	<permission name="camera"/>
+	<permission name="record"/>
+	<permission name="location"/>
+	<permission name="fileSystem"/>
+	<permission name="internet"/>
+	<permission name="bootCompleted"/>
+	<permission name="hardware"/>
+	<preference name="backgroundMode" value="location"/>
+	<feature name="bMap">
+		<param name="android_api_key" value="OyKLMASftfSQW0hNd3cgH5XgtelR6mRq" />
+		<param name="ios_api_key" value="Dp0vsx5EIWyTmFvWwotSSccfhs7taoxQ" />
+  	</feature>
+    <feature name="ajpush">
+        <param name="app_key" value="19aa5af6898da71a248cc9c5" />
+        <param name="channel" value="all" />
+    </feature>
+</widget>
+

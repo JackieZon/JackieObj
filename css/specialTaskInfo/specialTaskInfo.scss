@@ -1,0 +1,32 @@
+@function rem($px) {
+    $remSize: $px / 375 * 10;
+    @return #{$remSize}rem;
+}
+
+body { background: #f5f5f5; height: 100%; }
+#app {
+    box-sizing: border-box;
+    padding-bottom: rem(70);
+    .mint-tab-container { padding: 50px 0px 65px; }
+    .device_info { 
+        margin-top: 10px; background: #fff;
+        textarea{ resize: none; }
+        .company_title{ 
+            background: #fff; 
+            text-align: center; 
+            p{ line-height: 45px; color: #26a2ff; font-size: 17px; border-top: 1px solid #d9d9d9; }
+        }
+    }
+    .image {
+        position: relative; 
+        width: 80px; 
+        height: 80px; 
+        margin: 5px; 
+        display: inline-block;
+        justify-content: center;
+        align-items: center; 
+        color: #26a2ff; 
+        overflow: hidden;
+        .img{ width: 100%; padding: 0; }
+    }
+}

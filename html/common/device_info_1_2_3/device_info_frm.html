@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <style>
+        body { background: #f5f5f5; height: 100%; }
+        .imgIcon { width: 25px; height: 25px; padding-right: 10px; }
+        #app .mint-tab-container { padding: 50px 0px 65px; }
+        #app .device_info { margin-top: 10px; background: #fff;}
+        #app .device_info textarea{ resize: none; }
+
+         #app .device_info .company_title{ background: #fff; text-align: center; }
+                #app .device_info .company_title p{ line-height: 45px; color: #26a2ff; font-size: 17px; }
+
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+            #app .record .record_list .record_content { display: flex; justify-content: space-between;}
+            #app .record .record_list p { font-size: 14px; line-height: 35px; display: flex; align-items: center; }
+
+        .image {position: relative; width: 80px; height: 80px; margin: 5px; display: inline-block;justify-content: center;align-items: center; color: #26a2ff; overflow: hidden;}
+        .image .img{ width: 100%; padding: 0; }
+        .content .record .table{
+            width:100%;
+            text-align:left;
+            border-collapse:collapse;
+            border-spacing:1;
+            border-spacing:0; 
+            border: none;
+        }
+        .content .record .table .tr{
+            box-sizing: border-box;
+            padding: 0 10px;
+        }
+        .content .record .table .tr.content{
+            background: #fff;
+        }
+        .content .record .table .td{
+            border: none;
+            background: #fff;
+            line-height: 45px;
+            border-bottom: 1px solid #f2f2f2;
+            font-size: 14px;
+            color: #333;
+        }
+        .content .record .table .th{
+            border: none;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 50px;
+            background: #f4f4f4;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <mt-navbar v-model="selected" :fixed="true">
+            <mt-tab-item id="1">设备信息</mt-tab-item>
+            <mt-tab-item id="2">单位信息</mt-tab-item>
+            <!-- <mt-tab-item id="3">维保记录</mt-tab-item> -->
+            <mt-tab-item id="4">参数信息</mt-tab-item>
+            <mt-tab-item id="5">检查记录</mt-tab-item>
+            <mt-tab-item id="6" v-if="deviceStatusJson.StatusData3">实时监控</mt-tab-item>
+            <mt-tab-item id="7" v-if="!deviceStatusJson.StatusData3">检验信息</mt-tab-item>
+        </mt-navbar>
+
+        <mt-tab-container v-model="selected">
+            <mt-tab-container-item id="1">
+                <div class="device_info">
+                    <mt-field label="设备名称" :value="deviceInfo.DeviceName | s_toDate" disabled></mt-field>
+                    <mt-field label="登记日期" :value="deviceInfo.DeviceCertDate | s_toDate" disabled></mt-field>
+                    <mt-field label="设备注册号" :value="deviceInfo.DeviceRegNo | s_toStr" disabled></mt-field>
+                    <mt-field label="注册状态" :value="deviceRigsterStatus[deviceInfo.DeviceRegStatus]" disabled></mt-field>
+                    <mt-field label="设备种类" :value="deviceInfo.DeviceTypeName1 | s_toStr" disabled></mt-field>
+                    <mt-field label="设备种类" :value="deviceInfo.DeviceTypeName2 | s_toStr" disabled></mt-field>
+                    <mt-field label="设备类别" :value="deviceInfo.DeviceTypeName3 | s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <mt-field label="出厂编号" :value="deviceInfo.DeviceProduceNo | s_toStr" disabled></mt-field>
+                    <mt-field label="出厂日期" :value="deviceInfo.DeviceProduceDate | s_toDate" disabled></mt-field>
+                    <mt-field label="使用状态" :value="deviceStatus[deviceInfo.DeviceStatus]" disabled></mt-field>
+                    <mt-field label="设备所在地" :value="deviceInfo.DeviceProduceAreaName2 + deviceInfo.DeviceProduceAreaName3 + deviceInfo.DeviceProduceAddress | s_toStr" disabled></mt-field>
+                    <mt-field label="使用登记证号" :value="deviceInfo.DeviceCertNo | s_toStr" disabled></mt-field>
+                    <!-- <mt-field label="发证时间" :value="deviceInfo.DeviceCertDate | s_toDate" disabled></mt-field> -->
+                </div>
+                <div class="device_info">
+                    <mt-field label="设备说明" :value="deviceInfo.DeviceIntro | s_toStr" type="textarea" rows="4" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <mt-cell title="设备相册"></mt-cell>
+                    <div class="image" v-if="deviceInfo.DevicePhotosPath.length>0"  v-for="(item,index) in deviceInfo.DevicePhotosPath" @click="imgView(index)">
+                        <img class="img" v-cache="item.url" alt="暂无">
+                    </div>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="2">
+
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>使用单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="deviceInfo.DeviceUseName | s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="deviceInfo.DeviceUseContactMan | s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="deviceInfo.DeviceUseTel | s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="deviceInfo.DeviceUseFullAddress | s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>生产单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="deviceInfo.DeviceProduceName | s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="deviceInfo.DeviceProduceContactMan | s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="deviceInfo.DeviceProduceContactTel | s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="deviceInfo.DeviceProduceFullAddress | s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>安装单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="deviceInfo.DeviceInstallName | s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="deviceInfo.DeviceInstallContactMan | s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="deviceInfo.DeviceInstallContactTel | s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="deviceInfo.DeviceInstallFullAddress | s_toStr" disabled></mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>维保单位信息</p>
+                    </div>
+                    <mt-field label="单位名称" :value="deviceInfo.DeviceTenanceName | s_toStr" disabled></mt-field>
+                    <mt-field label="联系人" :value="deviceInfo.DeviceTenanceContactMan | s_toStr" disabled></mt-field>
+                    <mt-field label="联系电话" :value="deviceInfo.DeviceTenanceTel | s_toStr" disabled></mt-field>
+                    <mt-field label="单位地址" :value="deviceInfo.DeviceTenanceFullAddress | s_toStr" disabled></mt-field>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="3">
+                <div>
+                    <ul class="record">
+                        <li class="record_list" v-for="item in tenanceList" @click="openAegisInfo(item)">
+                            <div class="record_content">
+                                <p><img class="imgIcon" src="./../../../image/time.svg" alt="">维保时间 : <span>&nbsp;{{ item.TenanceFinishDate | s_toDate }}</span></p>
+                                <p>类型 : <span>&nbsp;{{ item.TenanceTypeName | s_toStr }}</span></p>
+                            </div>
+                            <p><img class="imgIcon" src="./../../../image/repair.svg" alt="">维保单位 : <span>&nbsp;{{ item.CompanyTenanceName | s_toStr }}</span></p>
+                            <div class="record_content">
+                                <p><img class="imgIcon" src="./../../../image/man.svg" alt="">维保人员 : <span>&nbsp;{{ item.TenanceManNames | s_toStr }}</span></p>
+                                <img class="imgIcon" src="./../../../image/arrow.svg" alt="">
+                            </div>
+                            <p><img class="imgIcon" src="./../../../image/company.svg" alt="">使用单位 : <span>&nbsp;{{ item.CompanyUseName | s_toStr }}</span></p>
+                            <div class="record_content">
+                                <p><img class="imgIcon" src="./../../../image/man.svg" alt="">单位人员 : <span>&nbsp;李四</span></p>
+                                <p>状态 : <span>&nbsp;{{ item.TenanceStatusName }}</span></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="4">
+                <div class="content">
+                    <div class="record">
+                        <div class="table">
+                            <div class="tr">
+                                <div class="th">{{deviceInfo.DeviceTypeName1||'暂无'}}</div>
+                            </div>
+                            <div class="tr content" v-for="item in deviceInfo.DeviceParamObjectArr">
+                                <div class="td">{{item.type}}：{{item.val}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="5">
+                <div>
+                    <ul class="record">
+                        <li class="record_list" v-for="item in listTaskCheck" @click="openInspectInfo(item)">
+                            <p><img class="imgIcon" src="./../../../image/repair.svg" alt="">检查编号 : <span>&nbsp;{{item.CheckNo | s_toStr}}</span></p>
+                            <p><img class="imgIcon" src="./../../../image/time.svg" alt="">检查时间 : <span>&nbsp;{{item.CheckAddDate|s_toDate}}</span></p>
+                            <!-- <p><img src="./../../../image/repair.svg" alt="">维保单位 : <span>&nbsp;{{'缺少维保单位'}}/span></p> -->
+                            <div class="record_content">
+                                <p><img class="imgIcon" src="./../../../image/times.svg" alt="">结束时间 : <span>&nbsp;{{item.CheckResultEndDate | s_toDate}}</span></p>
+                                <img class="imgIcon" src="./../../../image/arrow.svg" alt="">
+                            </div>
+                            <p><img class="imgIcon" src="./../../../image/company.svg" alt="">使用单位 : <span>&nbsp;{{item.CompanyUseName|s_toStr}}</span></p>
+                            <div class="record_content">
+                                <p><img class="imgIcon" src="./../../../image/man.svg" alt="">单位人员 : <span>&nbsp;{{item.CompanyUseName|s_toStr}}</span></p>
+                                <p><img class="imgIcon" src="./../../../image/status.svg" alt="">状态 : <span>&nbsp;{{checkStatus[item.CheckStatus]}}</span></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="6" v-if="deviceStatusJson.StatusData3">
+                <div class="device_info">
+                    <div class="company_title" style="display: flex; align-items: center; justify-content: space-between; border: 0; padding: 0 10px;">
+                        <div style="width: 25%; display: flex; align-items: center; font-size: 14px; color: #26a2ff;"><input type="checkbox" v-model="autoRefresh">自动刷新</div>
+                        <p>通讯设备状态</p>
+                        <div style="font-size: 14px; color: #26a2ff;" @click="getDeviceStatusJson">刷新</div>
+                    </div>
+                    <mt-field label="温度" disabled>{{ deviceStatusJson.StatusData3.Temperature }}</mt-field>
+                    <mt-field label="水泵补水" disabled><mt-switch disabled :value="deviceStatusJson.StatusData3.IO2 ? false : true"></mt-switch></mt-field>
+                    <mt-field label="鼓风机" disabled><mt-switch disabled :value="deviceStatusJson.StatusData3.IO3 ? false : true"></mt-switch></mt-field>
+                    <mt-field label="点火开关" disabled><mt-switch disabled :value="deviceStatusJson.StatusData3.IO4 ? false : true"></mt-switch></mt-field>
+                    <mt-field label="正常运作" disabled><mt-switch disabled :value="deviceStatusJson.StatusData3.IO5 ? false : true"></mt-switch></mt-field>
+                    <mt-field label="故障报警" disabled><mt-switch disabled :value="deviceStatusJson.StatusData3.IO6 ? false : true"></mt-switch></mt-field>
+                    <mt-field label="最后更新时间" disabled>{{ deviceStatusJson.StatusData3.LastSetTimeStatus3 | s_toTime  }}</mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>蒸汽流量仪表状态</p>
+                    </div>
+                    <mt-field label="瞬时" disabled>{{ deviceStatusJson.StatusData1.Flowrate }}</mt-field>
+                    <mt-field label="频率" disabled>{{ deviceStatusJson.StatusData1.Frequency }}</mt-field>
+                    <mt-field label="差压" disabled>{{ deviceStatusJson.StatusData1.DiffPressure }}</mt-field>
+                    <mt-field label="压力" disabled>{{ deviceStatusJson.StatusData1.Pressure }}</mt-field>
+                    <mt-field label="温度" disabled>{{ deviceStatusJson.StatusData1.Temperature }}</mt-field>
+                    <mt-field label="密度" disabled>{{ deviceStatusJson.StatusData1.Density }}</mt-field>
+                    <mt-field label="热量" disabled>{{ deviceStatusJson.StatusData1.QuantityOfHeat }}</mt-field>
+                    <mt-field label="积累" disabled>{{ deviceStatusJson.StatusData1.IntegratedFlow }}</mt-field>
+                    <mt-field label="累积热" disabled>{{ deviceStatusJson.StatusData1.CumulativeHot }}</mt-field>
+                    <mt-field label="最后更新时间" disabled>{{ deviceStatusJson.StatusData1.LastSetTimeStatus1 | s_toTime  }}</mt-field>
+                </div>
+                <div class="device_info">
+                    <div class="company_title">
+                        <p>燃气流量仪表状态</p>
+                    </div>
+                    <mt-field label="总量" disabled>{{ deviceStatusJson.StatusData2.TotalInteger2 + deviceStatusJson.StatusData2.TotalDecimal2 }}</mt-field>
+                    <mt-field label="流量" disabled>{{ deviceStatusJson.StatusData2.Flow }}</mt-field>
+                    <mt-field label="温度" disabled>{{ deviceStatusJson.StatusData2.Temperature }}</mt-field>
+                    <mt-field label="压力" disabled>{{ deviceStatusJson.StatusData2.Pressure }}</mt-field>
+                    <mt-field label="工况百分比" disabled>{{ deviceStatusJson.StatusData2.ConditionPercentage }}</mt-field>
+                    <mt-field label="最后更新时间" disabled>{{ deviceStatusJson.StatusData2.LastSetTimeStatus2 | s_toTime  }}</mt-field>
+                </div>
+            </mt-tab-container-item>
+
+            <mt-tab-container-item id="7" v-if="!deviceStatusJson.StatusData3">
+                <div class="content">
+                    <div class="record">
+                        <div class="table">
+                            <div class="tr">
+                                <div class="th">定期检验信息</div>
+                            </div>
+                            <div class="tr content">
+                                <div class="td">上次检验结论：{{deviceInfo.DeviceLastTestResult}}</div>
+                                <div class="td">上次检验日期：{{deviceInfo.DeviceLastTestDate | s_toDate}}</div>
+                                <div class="td">下次检验日期：{{deviceInfo.DeviceNextTestDate | s_toDate}}</div>
+                            </div>
+                        </div>
+                        <div class="table">
+                            <div class="tr">
+                                <div class="th">年度检验信息</div>
+                            </div>
+                            <div class="tr content">
+                                <div class="td">上次检验结论：{{deviceInfo.DeviceLastYearTestResult}}</div>
+                                <div class="td">上次检验日期：{{deviceInfo.DeviceLastYearTestDate | s_toDate}}</div>
+                                <div class="td">下次检验日期：{{deviceInfo.DeviceNextYearTestDate | s_toDate}}</div>
+                            </div>
+                        </div>
+                        <div class="table">
+                            <div class="tr">
+                                <div class="th">耐压检验信息</div>
+                            </div>
+                            <div class="tr content">
+                                <div class="td">上次检验结论：{{deviceInfo.DeviceLastPressureTestResult}}</div>
+                                <div class="td">上次检验日期：{{deviceInfo.DeviceLastPressureTestDate | s_toDate}}</div>
+                                <div class="td">下次检验日期：{{deviceInfo.DeviceNextPressureTestDate | s_toDate}}</div>
+                            </div>
+                        </div>
+                        <div class="table">
+                            <div class="tr">
+                                <div class="th">约检通知记录</div>
+                            </div>
+                            <div class="tr content">
+                                <div class="td">登记人：{{deviceInfo.DeviceInsNoticeRegister}}</div>
+                                <div class="td">登记时间：{{deviceInfo.DeviceInsNoticeTime | s_toDate}}</div>
+                                <div class="td">通知结果描述：{{deviceInfo.DeviceInsNoticeIntro}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mt-tab-container-item>
+
+        </mt-tab-container>
+
+        <div class="footer" v-if="UserTypeName=='巡查员'">
+            <!-- localStorage.UserTypeName = '巡查员'; -->
+            <mt-button type="primary" @click="editDevice" size="large">修改信息</mt-button>
+        </div>
+
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script>
+    subei.ready(function () {
+        new Vue({
+            el: '#app',
+            data: {
+                selected: '1',
+                deviceId:'',
+                deviceRigsterStatus:['未注册','已注册'],
+                deviceStatus:['未使用','在用','停用','检测中','整改中'],
+                // tenanceStatus:['暂存','待审核','审核退回','审核通过'],
+                checkStatus:['暂存','待处理','待审核','审核退回','审核通过'],
+                deviceInfo:{},
+                tenanceList:[],
+                listTaskCheck:[],
+                UserTypeName:localStorage.UserTypeName,
+                deviceStatusJson: {},
+                autoRefresh: false,
+                time: 0,
+                countDownFun: null
+            },
+            mounted: function (){
+
+                //存入设备Id
+                this.deviceId = subei.getParam('deviceId');
+
+                this.getDeviceInfo();
+
+                // this.getDeviceStatusJson();
+            },
+            methods: {
+
+                openAegisInfo: function (item){
+                    openWin('aegis_info','./aegis_info/aegis_info_win.html',{taskId: item.ID})
+                },
+
+                openYearInspectInfo: function (){
+                    openWin('year_inspect_info','./year_inspect_info/year_inspect_info_win.html',{})
+                },
+
+                openInspectInfo: function (item){
+                    openWin('inspect_info','./inspect_info/inspect_info_win.html',{taskId: item.ID})
+                },
+
+                getDeviceInfo: function (){
+                    // this.deviceId
+                    apiAjax({url:"Device/Device/" + this.deviceId,type:'post',param:{}},function(data,total){
+                        if(data.DeviceCertDate){
+
+                            data.DeviceCertDate = this.filiterDate(data.DeviceCertDate);
+
+                        }
+
+                        console.log('这是设备详情'+JSON.stringify(data));
+                        this.deviceInfo = data;
+                        this.tenanceList = data.ListTaskTenance;
+                        this.listTaskCheck = data.ListTaskCheck;
+                        var DevicePhotosPath = this.deviceInfo.DevicePhotosPath;
+
+
+                        if(DevicePhotosPath.length>0){
+                            DevicePhotosPath = DevicePhotosPath.map(function(i){
+                                i.url = (i.url.indexOf('http://')>-1?i.url:base_url_photo+i.url);
+                                return i
+                            });
+                        }
+
+                        if(JSON.stringify(this.deviceInfo.DeviceParamObject)!=='{}'){
+                            var DeviceParamObjectArr = []
+                            for(var j in this.deviceInfo.DeviceParamObject){
+                                DeviceParamObjectArr.push({
+                                    type: j,
+                                    val: this.deviceInfo.DeviceParamObject[j]
+                                })
+                            }
+                            // var obj = []    // 到达数量3时保存
+                            // var spare = []  // 剩余条数
+                            // var allObj = [] // 磊加3条的数据
+
+                            // for(var k=0; k<DeviceParamObjectArr.length; k++){
+                            //     var item = DeviceParamObjectArr[k]
+                            //     obj.push(item)
+                            //     if( k%3 == 0 ){
+                            //         allObj.unshift(obj)
+                            //         obj = []
+                            //     }else if( DeviceParamObjectArr.length-k < 3){
+                            //         spare.push(item)
+                            //         if(k+1==DeviceParamObjectArr.length){
+                            //             allObj.unshift(spare)
+                            //         }
+                            //     }
+                            // }
+                            console.log('设备参数重组为3组')
+                            console.log(JSON.stringify(DeviceParamObjectArr))
+                            this.deviceInfo['DeviceParamObjectArr'] = DeviceParamObjectArr
+                        }
+
+                        if (this.deviceInfo.DeviceHardware != null){
+                            this.deviceStatusJson = JSON.parse(this.deviceInfo.DeviceHardware.DeviceStatusJson);
+                        }
+
+                    }.bind(this));
+
+                },
+                getDeviceStatusJson: function (){
+
+                    apiAjax({url:"Device/GetDeviceStatusJson/" + this.deviceId,type:'post',param:{}},function(data,total){
+                        // console.log('这是设备实时监控数据======================================================'+JSON.stringify(data));
+                        this.deviceStatusJson = JSON.parse(data.DeviceStatusJson);
+                        toastShow('刷新成功！');
+                        console.log('监控数据啊啊啊啊'+data.DeviceStatusJson)
+                    }.bind(this));
+
+                },
+                editDevice: function (){
+                    openWin('device_edit_win','./../../2User_inspect/2Tab/device_edit/device_edit_win.html',{deviceId: this.deviceId});
+                },
+                imgView: function (index){
+                    var imgArr = [];
+                    for(var i=0; i<this.deviceInfo.DevicePhotosPath.length; i++){
+                        imgArr.push(this.deviceInfo.DevicePhotosPath[i].url);
+                    }
+                    subei.imgPreview(index,imgArr);
+                },
+                filiterDate: function (date){
+                    
+                    var dateLength = date.indexOf('T');
+                    var result = date.slice(0,dateLength);
+
+                    return result;
+
+                },
+
+                countDown: function () {
+                    var t_data = this;
+                    var now = new Date();
+                    if(now.getTime() - this.time >= 2000){
+
+                        this.getDeviceStatusJson();
+
+                    }else{
+                        return;
+                    }
+                    this.time = now.getTime();
+                }
+            },
+            
+            // computed: {
+            //     tabStatus: function () {
+            //         return this.selected;
+            //     }
+            // },
+            watch:{
+                selected: function (){
+                    this.getDeviceInfo()
+                    this.autoRefresh = false;
+                   
+                },
+                autoRefresh: function () {
+                    var t_data = this;
+                    if(this.autoRefresh){
+                    
+                        window.asd = window.setInterval(function () {
+
+                            t_data.countDown ()
+
+                        },2000);
+
+                    }else{
+                        window.clearInterval(window.asd);
+                        this.autoRefresh = false;
+                        toastShow('关闭自动刷新！');
+                    }
+                        
+                }
+            }
+        });
+    });
+
+</script>
+
+</html>

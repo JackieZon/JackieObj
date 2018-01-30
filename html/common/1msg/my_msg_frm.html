@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <title>3Tab</title>
+    <style>
+        /* .center{
+            display: flex;
+            justify-content:flex-start;
+            align-items: center;
+        }
+        .list{
+            margin-top: 10px;
+            box-sizing: border-box;
+            padding: 10px 15px;
+            background: url('./../../../icon/img/the-right.png') 95% 50% no-repeat #fff;
+            color: #333;
+            background-size: 20px;
+        }
+        .list .title{
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+        }
+        .list .info{
+            font-size: 12px;
+            padding: 10px 0px 0px;
+            color: #666;
+        }
+        .list .info .item .name{
+            width: 80px;
+        }
+        .list .fot{
+            display: flex;
+            justify-content: space-between;
+        }
+        .icon{
+            color:#26a2ff;
+            margin-right: 5px;
+        } */
+        p { line-height: 25px; }
+
+        .dsf { display: flex; }
+
+        .msg-list { width: 100%; }
+
+        .msg-list .list-msg { background: white; padding: 10px; margin-top: 10px; align-items: center; }
+
+            .list-msg .msg-img { width: 60px; height: 60px; padding-right: 10px; }
+                .msg-img img { width: 60px; height: 60px; }
+            .msg-content { width: 100%; }
+                .msg-content .msg-title { align-items: center; justify-content: space-between; }
+                .msg-content .msg-prompt { width: 10px; height: 10px; border-radius: 50%; background: red; }
+
+            .content { font-size: 14px; color:#666; }
+
+            .bottom { justify-content: space-between; font-size: 14px; color:#666; }
+
+
+
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+         <ul class="msg-list">
+             <li class="dsf list-msg" v-for="item in searchList" @click="openInfo(item)">
+                <div class="msg-img">
+                    <img src="./../../../image/msg.svg" alt="">
+                </div>
+
+                <div class="msg-content">
+                    <div class="dsf msg-title">
+                        <p>{{ item.MessageTitle }}</p>
+                        <div class="msg-prompt" v-if="!item.MessageReadFlag"></div>
+                    </div>
+                    <p class="content">{{ item.MessageContent }}</p>
+                    <div class="dsf bottom">
+                        <p>{{ item.CreateMember }}</p>
+                        <p>{{ item.CreateDate | s_toDate }}</p>
+                    </div>
+                </div>
+             </li>
+         </ul>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function(){
+        new Vue({
+            el:'#app',
+            data:{
+                searchValue: { PageSize: 16, PageIndex: 1, RowCount: 0,keyword: null },
+                searchList:[]
+            },
+            mounted: function (){
+
+                
+                subei.getDataInit(this, function () {
+
+                    this.getMessage()
+
+                }.bind(this));
+
+            },
+            methods:{
+                getMessage: function (){
+                    var t_data = this;
+                    showLoader();
+                    
+                    $.ajax({
+                        type:'get',
+                        data:{},
+                        dataType:'json',
+                        url:'http://app-lift2.subei88.com:8080/api/Member/Message?pageIndex='+ t_data.searchValue.PageIndex +'&pageSize='+t_data.searchValue.PageSize,
+                        success: function (res){
+                            hideLoader();
+                            if(res.status){
+                                t_data.searchValue.RowCount = res.total || 0;
+                                t_data.searchList = t_data.searchList.concat(res.info);
+                            }
+                            console.log(JSON.stringify(res))
+                        },
+                        error: function (err){
+                            hideLoader();
+                            console.log(JSON.stringify(err));
+                        }
+                    });
+
+                },
+                openInfo: function (item){
+
+                    this.readMsg(item.ID);
+
+                    switch(item.MessageObjectType){
+                        case "A1":
+                            openWin('inspect_info_win','./../task_info_1_2/inspect_info_win.html',{taskId:item.MessageObjectId});
+                            break;
+                        
+                        case "A2":
+                            openWin("feedBack_submit_win","./../../2User_inspect/1Tab/tasks_submit/feedBack_submit_win.html",{taskId:item.MessageObjectId});
+                            break;
+                        
+                        case "A3":
+                            openWin("instruct_info_win","./../../2User_inspect/instruct/instruct_info/instruct_info_win.html",{instructId:item.MessageObjectId})
+                            break;
+                        
+                        case "B1":
+                            openWin("inspect_info_win","./../task_info_1_2/inspect_info_win.html",{taskId:item.MessageObjectId});
+                            break;
+
+                        case "B2":
+                            openWin("feedBack_submit_win","./../../2User_inspect/1Tab/tasks_submit/feedBack_submit_win.html",{taskId:item.MessageObjectId});
+                            break;
+
+                        case "B3":
+                            openWin("instruct_info_win","./../../1User_quality/instruct/instruct_info/instruct_info_win.html",{instructId:item.MessageObjectId});
+                            break;
+                        
+                    }
+
+                    // if(item.MessageObjectType == "A1"){
+
+                    //     openWin('inspect_info_win','./../task_info_1_2/inspect_info_win.html',{taskId:item.MessageObjectId})
+
+                    // }else if(item.MessageObjectType == "A2"){
+                        
+                    //     openWin("feedBack_submit_win","./../../2User_inspect/1Tab/tasks_submit/feedBack_submit_win.html",{taskId:item.MessageObjectId})
+
+                    // }else if(item.MessageObjectType == "A3"){
+                    //     openWin("instruct_info_win","./../../2User_inspect/instruct/instruct_info/instruct_info_win.html",{instructId:item.MessageObjectId})
+                    // }
+
+                },
+                readMsg: function (Id){
+
+                    var t_data = this;
+
+                    $.ajax({
+                        url:base_url_api+'Member/Message/'+Id,
+                        type:"get",
+                        dataType:"json",
+                        success: function (res){
+                            
+                            for(var i = 0; i < t_data.searchList.length; i++){
+
+                                if(t_data.searchList[i].ID == Id){
+
+                                    t_data.searchList[i].MessageReadFlag = true;
+
+                                }
+
+                            }
+
+                        },
+                        error: function (err){
+
+                        }
+                    })
+
+                    // apiAjax({url:'Member/Message/'+Id,type:'post',param:{}},function(data){
+
+                    // }.bind(this));
+                
+                }
+
+            }
+        });
+    })
+</script>
+</html>

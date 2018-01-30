@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        
+        body { background: #f5f5f5; height: 100%; }
+        img { width: 25px; height: 25px; padding-right: 10px; }
+        #app{box-sizing: border-box;}
+        .new { color:  #26a2ff; }
+        .bottom { width:100%; height: 70px; }
+        .pad-bottom { padding-bottom: 10px; }
+        #app .record .record_list { background: white; padding: 10px; margin-top: 10px; }
+            #app .record .record_list .record_content { display: flex; justify-content: space-between;}
+            #app .record .record_list p { font-size: 14px; line-height: 30px; display: flex; align-items: center; }
+            #app .task_info { margin-top: 10px; }
+            #app .regulations { margin-top: 10px; }
+        
+        #app .task_info .maintenance_data { display: flex; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #d9d9d9; padding: 10px;  background: white; border-top: 1px solid #d9d9d9;}
+        #app .regulations textarea{ resize: none; height: 100px; font-size: 15px; }
+            #app .task_info .maintenance_data p { width:80px; margin-right: 15px; }
+            #app .task_info .maintenance_data .image {position: relative; width: 80px; height: 80px; margin: 5px; display: flex;justify-content: center;align-items: center; color: #26a2ff; }
+            #app .task_info .maintenance_data .image .deleteImg{position: absolute;top: 2px;right: 2px;color: red;background: rgba(255,255,255,0.65);border-radius: 5px;display: flex;justify-content: flex-end;align-items: center;}
+            #app .task_info .maintenance_data .image.add{border: 1px solid #f1f1f1;}
+        #app .task_info .maintenance_data .image img{ width: 100%; height: 100%; padding: 0; }
+
+        #app .refuse { width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); position: fixed; top: 0%; }
+            #app .refuse .refuse_content { width:100%; height:100%; display: flex; align-items: center; justify-content: center; }
+                #app .refuse .refuse_content .content{ width: 90%; background: white;  box-sizing: border-box; padding:10px; text-align: center; height: 190px; }
+                #app .refuse .refuse_content .content .but { display: flex; justify-content:space-around; margin-top: 40px; }
+                    #app .refuse .refuse_content .content .reason { width: 100%; height: 45%; border-radius: 10px; border: 1px #d9d9d9 solid; box-sizing:border-box; padding: 10px; }
+                        .refuse_content .content .reason textarea { width: 100%; height: 100%; resize: none; font-size: 14px; }
+        
+
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div>
+            <ul class="record">
+                <li class="record_list" @click="openDeviceInfo">
+                    <p><img src="./../../../../image/registered.svg" alt="">任务编号 : <span>&nbsp;{{ taskCheckInfo.CheckNo | s_toStr }}</span></p>
+                    <!-- <p><img src="./../../../../image/no.svg" alt="">设备证书 : <span>&nbsp;{{ deviceInfo.DeviceNo | s_toStr }}</span></p> -->
+                    <p><img src="./../../../../image/type.svg" alt="">任务类型 : <span>&nbsp;{{ taskCheckInfo.CheckTypeName | s_toStr }}</span></p>
+                    <div class="record_content">
+                        <p><img src="./../../../../image/operating.svg" alt="">处理方式 : <span>&nbsp;{{ taskCheckInfo.CheckResulTreatment | s_toStr }}</span></p>
+                        <img src="./../../../../image/arrow.svg" alt="">
+                    </div>
+                    <p><img src="./../../../../image/man.svg" alt="">任务派发人 : <span>&nbsp;{{ taskCheckInfo.TrackAddMan | s_toStr }}</span></p>
+                    <p><img src="./../../../../image/time.svg" alt="">派发时间 : <span>&nbsp;{{ taskCheckInfo.TrackAddDate | s_toStr }}</span></p>
+                    <!-- <div class="record_content">
+                        <p><img src="./../../../../image/time.svg" alt="">派发时间 : <span>&nbsp;{{ '2017-01-01' | s_toStr }}</span></p>
+                        <p class="new">状态 : <span>&nbsp;{{ '待处理' | s_toStr }}</span></p>
+                    </div> -->
+                </li>
+            </ul>
+        </div>
+        
+        <div class="task_info">
+            <mt-field label="派发人" :value="taskCheckInfo.TrackAddMan + taskCheckInfo.TrackAddManTel | s_toStr " disabled></mt-field> 
+            <mt-field label="所属部门" :value="taskCheckInfo.TrackAddDeptName | s_toStr" disabled></mt-field> 
+            <mt-field label="最晚反馈日期" :value="taskCheckInfo.TrackResultEndDate" disabled></mt-field>  
+        </div>
+
+        <div class="regulations">
+            <mt-field label="任务状态" :value="taskCheckInfo.TrackStatusName | s_toStr" disabled></mt-field> 
+            <mt-field label="派发时间" :value="taskCheckInfo.TrackAddDate | s_toDate" disabled></mt-field> 
+            <mt-field label="任务描述" disabled ></mt-field>
+            <mt-field placeholder="暂无" type="textarea" :value="taskCheckInfo.TrackIntro" rows="7" disabled ></mt-field> 
+        </div>
+        
+        <div class="task_info"  v-if="taskCheckInfo.TrackStatus == 2 || taskCheckInfo.TrackStatus == 3" >
+            <div class="maintenance_data">
+                <p>现场图片</p>
+                <div class="image" v-if="checkResultPhotos.length!==0" v-for="(item,index) in checkResultPhotos">
+                    <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                    <div class="deleteImg" @click="deleteImg(checkResultPhotos,index)" :height="20" :width="20">
+                        <Icon :name="'icon-close'"></Icon>
+                    </div>
+                </div>
+                <div class="image add" @click="chooseCheckResultPhotos()" v-if="(checkResultPhotos.length!==2)">
+                    <Icon :name="'icon-add'" :width="50" :height="50"></Icon>
+                </div>
+            </div>
+        </div>
+
+        <div class="regulations" v-if="taskCheckInfo.TrackStatus == 2 || taskCheckInfo.TrackStatus == 3" >
+            <mt-field label="反馈描述" disabled ></mt-field>
+            <mt-field placeholder="请输入反馈描述" v-model="postTaskData.TrackResultIntro" type="textarea" rows="7"></mt-field> 
+        </div>
+
+        <div class="task_info"  v-if="taskCheckInfo.TrackStatus == 6" >
+            <div class="maintenance_data">
+                <p>现场图片</p>
+                <div class="image" v-if="checkResultPhotos.length!==0" v-for="(item,index) in checkResultPhotos" @click="imgView(index)">
+                    <img v-if="item.status==2" v-cache="item.photoUrl1?item.photoUrl1:'./../../../icon/img/no-img.png'" alt="暂无">
+                </div>
+            </div>
+        </div>
+
+        <div class="regulations pad-bottom" v-if="taskCheckInfo.TrackStatus == 6" >
+            <mt-field label="反馈描述" disabled ></mt-field>
+            <mt-field placeholder="请输入反馈描述" disabled :value="taskCheckInfo.TrackResultIntro" type="textarea" rows="7"></mt-field> 
+        </div>
+
+        <div class="refuse" v-if="refuse">
+            <div class="refuse_content">
+                <div class="content">
+                    <div class="reason">
+                        <textarea placeholder="请输入拒绝原因" v-model="desc"></textarea>
+                    </div>
+                    <div class="but">
+                        <mt-button style="width: 47%;" size="large" type="primary" @click.native="taskRefuse">确定</mt-button>
+                        <mt-button style="width: 47%;" size="large" type="danger" @click.native="switchRefuse">取消</mt-button>
+                    </div>
+                    <!-- <mt-field placeholder="请输入拒绝原因" type="textarea" rows="4" v-modal="introduction"></mt-field> -->
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom" v-if="taskCheckInfo.TrackStatus < 6 && !refuse"></div>
+        <div class="footer" v-if="taskCheckInfo.TrackStatus < 6 && !refuse">
+            <div style="display: flex; justify-content: space-around;" v-if="taskCheckInfo.TrackStatus == 1 && !refuse">
+                <mt-button style="width: 47%;"  type="primary" size="large" @click.native="taskReceive" >接收任务</mt-button>
+                <mt-button style="width: 47%;" type="danger" size="normal" @click.native="switchRefuse">拒绝接收</mt-button>
+            </div>
+            <!-- <mt-button type="primary" size="large" @click.native="taskRegister" v-if="taskCheckInfo.TrackStatus == 2">任务签到</mt-button>  -->
+            <mt-button type="primary" v-if="taskCheckInfo.TrackStatus == 2 || taskCheckInfo.TrackStatus == 3" @click.native="taskCheckSumbitResult">提交</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+
+        var taskId = subei.getParam('taskId');
+
+        var app = new Vue({
+            el: "#app",
+            data: {
+
+                checkResultPhotos: [],
+                taskCheckInfo:{},
+                postTaskData:{
+
+                    "TaskCheckID": 0,
+                    "TaskCheckTrackID": 0,  //待绑定
+                    "TrackResultIntro": "",
+                    "TrackResultPhotoList": []
+
+                },
+                desc:'',
+                lon:'',
+                lat:'',
+                refuse:false
+
+            },
+
+            mounted: function () { 
+
+                this.postTaskData.TaskCheckID = subei.getParam('taskId');
+                
+                // var map = api.require('bMap'); //获取当前经纬度，用于签到任务
+
+                this.getTaskCheckInfo();
+
+                // map.getLocation({}, function (ret,err){
+                //     this.lon = ret.lon;
+                //     this.lat = ret.lat;
+                // }.bind(this))
+
+            },
+
+            computed: {
+                checkResultPhotosStr: function () {
+
+                    var imgs = [];
+                    for (var item in this.checkResultPhotos) {
+                        if (this.checkResultPhotos[item].photoUrl1) {
+                            imgs.push(this.checkResultPhotos[item].photoUrl1);
+                        }
+                    }
+                    return imgs.join(',');
+                }
+            },
+            methods: {
+
+                initPhotos: function (photosList){
+
+                    photosList.TrackResultPhotoList = photosList.TrackResultPhotoList.split(',');
+                    // console.log('这是返回来的现场图片'+JSON.stringify(photosList.TrackResultPhotoList))
+                    if(photosList.TrackResultPhotoList.length > 0 || photosList.TrackResultPhotoList){
+                        var photo = photosList.TrackResultPhotoList;
+                        var photos = [];
+                        for(var i=0; i < photo.length; i++){
+                            if(!photo[i]){
+                                photo.splice(i,1);
+                                return;
+                            }
+                            var urlImg = (photo[i].indexOf('http://')>-1?photo[i]:(base_url_photo+photo[i]));
+                            photos.push({name: photo[i], photoUrl: urlImg, photoUrl1: urlImg, status: 2});
+                        };
+                        this.checkResultPhotos = photos;
+
+                    }
+
+                },
+
+                chooseCheckResultPhotos: function () {
+
+                    // subei.upFile(this.checkResultPhotos, 2, 'CheckResult', function(res){
+                    subei.upFile(this.checkResultPhotos, 2, 'CheckResult', function(res){
+
+                        this.checkResultPhotos = res;
+                        console.log(JSON.stringify( res));
+
+                    }.bind(this));
+
+                },
+
+                deleteImg: function (photosList,i) {
+
+                    subei.alerts('您确认要删除吗', function () {
+
+                        photosList.splice(i, 1);
+
+                    }.bind(this));
+
+                },
+
+                getTaskCheckInfo: function (){
+
+                    showLoader();
+                    //http://app-lift2.subei88.com:8080/api/Device/TaskCheckInfo/4
+                    apiAjax({url:"Device/TaskCheckInfo/" + taskId,type:'post',param:{}},function(data){
+
+                        hideLoader();
+                        data.TrackAddDate = this.filterTime(data.TrackAddDate);
+                        data.TrackResultEndDate = this.filterTime(data.TrackResultEndDate);
+                        this.postTaskData.TaskCheckTrackID = data.TaskCheckTrackID;
+                        this.taskCheckInfo = data;
+                        this.initPhotos(data)
+                        console.log('这是我要的检查任务详情数据'+JSON.stringify(data)); 
+
+                    }.bind(this));
+
+                },
+
+                taskCheckSumbitResult: function (){
+                    // console.log('这是图片'+JSON.stringify(this.checkResultPhotos));
+                    // console.log('这是我要上传的单张图片'+JSON.stringify(this.checkResultPhotosStr))
+                    // return;
+                    this.postTaskData.TrackResultPhotoList = this.checkResultPhotosStr;
+                    if(!this.postTaskData.TrackResultPhotoList){
+                        toastShow('请上传现场图片！');
+                        return;
+                    }
+
+                    if(!this.postTaskData.TrackResultIntro){
+                        toastShow('请输入反馈内容！');
+                        return;
+                    }
+
+                    // console.log('这是要提交的数据'+JSON.stringify(this.postTaskData))
+
+                    subei.alerts('您确认要提交吗?', function () {
+
+                        showLoader();
+                        //http://app-lift2.subei88.com:8080/api/Device/TaskCheck_SumbitResult
+                        apiAjax({url:'Device/TaskCheck_SumbitResult',type:'post',param:this.postTaskData},function(data){
+
+                            hideLoader();
+                            console.log('这是提交之后返回的数据'+JSON.stringify(data))
+                            toastShow('提交成功！');
+                            this.getTaskCheckInfo();
+
+                        }.bind(this));
+
+                    }.bind(this));
+                    
+
+                },
+                
+                taskReceive: function(){
+                    subei.alerts('您确认要接收此任务吗？', function () {
+
+                        apiAjax({url:"Device/TaskCheckTrack_Receive?ID=" + taskId,type:'post',param:{}},function(data){
+
+                            toastShow(data,2000); 
+
+                            this.getTaskCheckInfo();
+
+                        }.bind(this))
+
+                    }.bind(this))
+                },
+
+                taskRegister: function(){
+                    
+                     subei.alerts('您确认要进行签到吗？', function () {
+
+                        apiAjax({url:"Device/TaskCheckTrack_Sign?ID=" + taskId + "&signLng=" + this.lon + "&signLat=" + this.lat,type:'post',param:{}},function(data){
+
+                            toastShow(data,2000); 
+
+                            this.getTaskCheckInfo();
+
+                        }.bind(this))
+
+                    }.bind(this))
+
+                },
+
+                //http://app-lift2.subei88.com:8080/api/Device/Device/1
+                getDeviceInfo: function(){
+                    apiAjax({url:"Device/Device/" + deviceId,type:'post',param:{}},function(data,total){
+                        this.deviceInfo = data;
+                        // console.log('任务提交页面的详情数据'+JSON.stringify(data))
+                    }.bind(this))
+                },
+
+                openDeviceInfo: function() {
+                    openWin('inspect_info', './../../../common/task_info_1_2/inspect_info_win.html', {taskId: this.taskCheckInfo.ID})
+                },
+                
+                filterTime: function(date){
+                    var dates = '';
+
+                    if(date){
+
+                        var dateIndex = date.indexOf("T");
+                        
+                        dates = date.substr(0,dateIndex);
+                    
+                    }else{
+
+                        dates = '暂无'
+
+                    }
+                    
+                    return dates;
+                },
+
+                imgView: function(index){
+
+                    var imgArr = [];
+
+                        for(var i=0; i<this.checkResultPhotos.length; i++){
+                       
+                            imgArr.push(this.checkResultPhotos[i].photoUrl1);
+                       
+                        }
+                    
+                    subei.imgPreview(index,imgArr);
+                },
+
+                
+                switchRefuse: function (){
+                    this.refuse = (this.refuse == false ? true : false);
+                },
+
+                taskRefuse: function (){
+
+                    console.log('拒绝任务提交的数据'+this.desc);
+
+                    if(!this.desc){
+                        toastShow("原因不能为空！",1000);
+                        return; 
+                    }
+
+                    subei.alerts('您确认要拒接此任务吗？', function () {
+
+                        apiAjax({url:"Device/TaskCheckTrack_RefuseReceive?ID="+ taskId +"&desc="+this.desc,type:'post',param:{}},function(data){
+
+                            toastShow(data,2000); 
+
+                            this.getTaskCheckInfo();
+
+                            this.refuse = false;
+
+                        }.bind(this))
+
+
+                    }.bind(this));
+                }
+
+            }
+        })
+    })
+
+</script>
+
+</html>

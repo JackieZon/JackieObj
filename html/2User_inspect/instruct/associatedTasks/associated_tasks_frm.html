@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../../css/base.css">
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        .list{
+            background: #fff;
+            margin-top: 10px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="task_list">
+            <div class="list" v-for="(item, index) in searchList" @click="openInspectInfo(item)">
+                <inspect-list :key="index" :item="item" :state="1"></inspect-list>
+            </div>
+            <no-data :item="searchList"></no-data>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/axios.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+        var instructId = subei.getParam('instructId');
+        subei.noRepeat();
+
+        var app = new Vue({
+            el:'#app',
+            data:{
+                searchList: []
+            },
+            mounted: function (){
+
+                this.getInstructInfo();
+
+            },
+            methods:{
+
+                getInstructInfo: function (){
+
+                    showLoader();
+                    // http://app-lift2.subei88.com:8080/api/Device/TaskCommandInfo/2
+                    apiAjax({url:"Device/TaskCommandInfo/" + instructId,type:'post',param:{}},function(data){
+
+                        hideLoader();
+                        
+                        this.searchList = data.ListTaskCheck;
+
+                    }.bind(this));
+
+                },
+                openInspectInfo: function (item) {
+                    openWin('inspect_info', './../../../common/task_info_1_2/inspect_info_win.html', {taskId:item.ID})
+                },
+            }
+
+        })
+
+    })
+
+</script>
+
+</html>

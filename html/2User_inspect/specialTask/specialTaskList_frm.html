@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./../../../css/base.css">
+    <link rel="stylesheet" href="./../../../css/mint/style.css">
+    <style>
+        #app .list { margin-top:10px; }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <special-list class="list" v-for="(item,index) in searchList" :item="item" :key="index" @click.native="openInfo(item)"></special-list>
+        <no-data :item="searchList" :load="getTaskCheckList"></no-data>
+    </div>
+</body>
+<script src="./../../../script/api.js"></script>
+<script src="./../../../script/base.js"></script>
+<script src="./../../../script/device.js"></script>
+<script src="./../../../script/vue/vue.js"></script>
+<script src="./../../../script/mint/index.js"></script>
+<script src="./../../../icon/icon/iconfont.js"></script>
+<script src="./../../../script/axios.js"></script>
+<script src="./../../../script/ajaxToAPICoud.js"></script>
+<script src="./../../../script/jquery.js"></script>
+<script>
+    subei.ready(function () {
+
+        window.app = new Vue({
+            el: "#app",
+            data: {
+                searchValue:{ PageSize: 10, PageIndex: 1, RowCount: 0,keyword: ''},
+                searchList:[]
+            },
+            mounted: function () {
+
+                var t_data = this;
+                this.searchList = [];
+
+                d_addEventListener('refresh', function(){
+
+                    t_data.getTaskCheckList();
+
+                })
+
+                subei.getDataInit(this, function () {
+
+                    this.getTaskCheckList()
+
+                }.bind(this));
+
+            },
+            methods: {
+              
+                getTaskCheckList: function (){
+
+                    showLoader();
+
+                    // http://app-lift2.subei88.com:8080/api/TaskCheck/GetTaskCheck_No94List
+                    apiAjax({url:'TaskCheck/GetTaskCheck_No94List',type:'post',param:this.searchValue},function(data,total){
+                      
+                        hideLoader();
+                        
+                        this.searchValue.RowCount = total || 0;
+
+                        for(var i = 0; i < data.length; i++){
+
+                            var index = data[i].TaskCheckChangedEndDate.indexOf('T');
+
+                            if(index > -1){
+
+                                data[i].TaskCheckChangedEndDate = data[i].TaskCheckChangedEndDate.slice(0,index);
+
+                            }
+                             
+
+                        }
+
+                        this.searchList = this.searchList.concat(data);
+
+                        console.log('这是专项任务列表数据'+JSON.stringify(this.searchList));
+
+                    }.bind(this));
+                },
+
+                openInfo: function (item){
+                    openWin('specialTaskInfo_win','./specialTaskInfo_win.html',{id: item.ID});
+                }
+
+            }
+           
+        })
+    });
+
+</script>
+
+</html>

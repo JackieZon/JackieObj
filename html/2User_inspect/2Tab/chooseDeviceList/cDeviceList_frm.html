@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="./../../../../css/base.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./../../../../css/mint/style.css">
+    <style>
+        #app .but { position: fixed; bottom: 0px; right: 0px; width: 96%; padding: 2%; background: white; }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div v-if="searchList.length">
+            <device-list v-for="(item,index) in searchList" :key="index" :item="item" state="1"></device-list>
+        </div>
+        <no-data :item="searchList"></no-data>
+        <div class="but">
+            <mt-button type="primary" size="large" @click="clearList">清空</mt-button>
+        </div>
+    </div>
+</body>
+<script src="./../../../../script/api.js"></script>
+<script src="./../../../../script/base.js"></script>
+<script src="./../../../../script/device.js"></script>
+<script src="./../../../../script/jquery.js"></script>
+<script src="./../../../../script/vue/vue.js"></script>
+<script src="./../../../../script/mint/index.js"></script>
+<script src="./../../../../icon/icon/iconfont.js"></script>
+<script>
+    subei.ready(function () {
+        // 去重数组
+        subei.noRepeat()
+        var ListDevice = subei.getParam('ListDevice')
+        console.log('已有的设备列表↓')
+        console.log(JSON.stringify(ListDevice))
+        new Vue({
+            el: '#app',
+            data: {
+                searchList: []
+            },
+            mounted: function (){
+                
+                d_addEventListener('device', function(res){
+                    var data = res.value.item
+                    this.searchList.push(data)
+                    this.searchList = this.searchList.arrUniq()
+                }.bind(this))
+                if(ListDevice.length){
+                    this.searchList = ListDevice
+                }
+            },
+            watch:{
+                searchList(){
+                    d_sendEventExtra('cDeviceList',{list: this.searchList})
+                }
+            },
+            methods:{
+                clearList(){
+                    
+                    subei.alerts('您确认要清空吗', function () {
+                        this.searchList = [];
+                    }.bind(this));
+                    
+                }
+            }
+        })
+    });
+</script>
+
+</html>
